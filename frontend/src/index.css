@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: #F5F7F8;
+  color: #44475B;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utilities */
+.groww-card {
+  @apply bg-groww-card rounded-xl border border-groww-border shadow-sm p-6;
+}
+
+.btn-primary {
+  @apply bg-groww-primary text-white font-medium py-2 px-6 rounded-lg hover:bg-[#00b386] transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-groww-blue text-white font-medium py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
