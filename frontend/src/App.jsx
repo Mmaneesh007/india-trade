@@ -65,7 +65,7 @@ function Dashboard() {
         setCandles(MOCK_RELIANCE.candles);
       }
     } catch (e) {
-      console.error("Failed to fetch data, using mock", e);
+      console.error("Failed to fetch data", e);
       setPriceData(MOCK_RELIANCE);
       setCandles(MOCK_RELIANCE.candles);
     }

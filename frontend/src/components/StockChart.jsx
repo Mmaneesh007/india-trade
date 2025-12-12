@@ -67,7 +67,9 @@ export default function StockChart({ data, colors }) {
             window.removeEventListener('resize', handleResize);
             chart.remove();
         };
+        // Force re-render if data changes
     }, [data]);
 
-    return <div ref={chartContainerRef} className="w-full h-[400px]" />;
+    // Added background color to ensure container is visible
+    return <div ref={chartContainerRef} className="w-full h-[400px] bg-white text-black" />;
 }
