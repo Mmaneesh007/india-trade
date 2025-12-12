@@ -278,12 +278,54 @@ export default function Dashboard() {
         <div className="min-h-screen bg-groww-bg font-sans pb-20">
             <Header activeTab={activeTab} setActiveTab={setActiveTab} setSymbol={setSymbol} />
 
+// ... imports
+
+            // Exporting NewsCard from MarketOverview would be clean, but let's just create a dedicated component or import it if I export it.
+            // I will export NewsCard from MarketOverview.jsx in the next step.
+            // For now, let's setup the Tab switch.
+
             {/* MUTUAL FUNDS TAB */}
             {activeTab === 'mutual_funds' && <MutualFunds />}
+
+            {/* STOCKS NEWS TAB */}
+            {activeTab === 'news' && (
+                <main className="container mx-auto px-4 py-8 max-w-7xl">
+                    <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2 font-serif">
+                        <span className="bg-groww-primary/10 p-2 rounded-lg text-groww-primary">📰</span>
+                        Top Market Headlines
+                    </h1>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {news.map((item, i) => (
+                            <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="group bg-white flex flex-col h-full rounded-xl overflow-hidden hover:shadow-lg transition-shadow border border-gray-100">
+                                <div className="h-48 bg-gray-200 relative overflow-hidden">
+                                    {item.thumbnail?.resolutions?.[0]?.url ? (
+                                        <img src={item.thumbnail.resolutions[0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-100">News</div>
+                                    )}
+                                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-800 rounded-sm">
+                                        Market Update
+                                    </div>
+                                </div>
+                                <div className="p-5 flex flex-col flex-1">
+                                    <h3 className="text-lg font-bold text-gray-900 leading-tight mb-3 font-serif line-clamp-3 group-hover:text-groww-primary transition-colors">
+                                        {item.title}
+                                    </h3>
+                                    <div className="mt-auto pt-4 flex items-center justify-between text-xs text-gray-500 bg-white">
+                                        <span className="font-bold text-gray-700 uppercase tracking-wide">{item.publisher}</span>
+                                        <span>{new Date(item.providerPublishTime * 1000).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                </main>
+            )}
 
             {/* STOCKS TAB */}
             {activeTab === 'stocks' && (
                 <main className="container mx-auto px-4 py-8 max-w-7xl">
+                    {/* ... existing stocks content ... */}
 
                     {/* NSE STYLE MARKET OVERVIEW */}
                     <MarketOverview niftyData={niftyData} niftyCandles={niftyCandles} news={news} />

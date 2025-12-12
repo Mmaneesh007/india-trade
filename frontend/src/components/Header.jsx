@@ -88,6 +88,12 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                     >
                         Mutual Funds
                     </button>
+                    <button
+                        onClick={() => setActiveTab('news')}
+                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'news' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                    >
+                        Stocks News
+                    </button>
                 </nav>
 
                 <div className="hidden lg:flex gap-6 text-xs border-l border-gray-200 pl-6 h-8 items-center">
