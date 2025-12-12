@@ -6,7 +6,7 @@ import MarketOverview from '../components/MarketOverview';
 import { useSocket } from '../context/SocketContext';
 import { Search, Plus, Minus, Briefcase, RefreshCw } from 'lucide-react';
 import axios from 'axios';
-import { MOCK_NIFTY, MOCK_RELIANCE } from '../mockData';
+import { MOCK_NIFTY, MOCK_RELIANCE, generateSmartCandles } from '../mockData';
 
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -129,21 +129,39 @@ export default function Dashboard() {
 
     const fetchStockData = async (sym) => {
         try {
-            const [snapRes, candleRes] = await Promise.all([
-                axios.get(`/api/quotes/latest/${sym}`),
-                axios.get(`/api/quotes/candles/${sym}`)
-            ]);
+            // First fetch the Quote (Real Price) specifically
+            const snapRes = await axios.get(`/api/quotes/latest/${sym}`);
+            const realPrice = snapRes.data.price || 1500; // Fallback default
             setPriceData(snapRes.data);
-            if (candleRes.data.candles && candleRes.data.candles.length > 0) {
-                setCandles(candleRes.data.candles);
-            } else {
-                console.warn("Using Mock Candles for Stock");
-                setCandles(MOCK_RELIANCE.candles);
+
+            try {
+                // Then try to fetch candles
+                const candleRes = await axios.get(`/api/quotes/candles/${sym}`);
+                if (candleRes.data.candles && candleRes.data.candles.length > 0) {
+                    setCandles(candleRes.data.candles);
+                } else {
+                    throw new Error("Empty candles");
+                }
+            } catch (candleErr) {
+                console.warn(`Candle fetch failed for ${sym}, generating smart pattern for price ${realPrice}`);
+                // Use Smart Fallback: Generate unique candles ending at the REAL price
+                const smartCandles = generateSmartCandles(sym, realPrice, 100);
+                setCandles(smartCandles);
             }
+
         } catch (e) {
-            console.error("Failed to fetch data", e);
-            setPriceData(MOCK_RELIANCE);
-            setCandles(MOCK_RELIANCE.candles);
+            console.error("Critical fetch failed", e);
+            // Even if everything fails, make a random chart
+            const randomPrice = 1000 + Math.random() * 2000;
+            setPriceData({
+                symbol: sym,
+                price: randomPrice,
+                change: 15.5,
+                changePercent: 1.2,
+                open: randomPrice - 20,
+                prevClose: randomPrice - 15
+            });
+            setCandles(generateSmartCandles(sym, randomPrice, 100));
         }
     };
 
