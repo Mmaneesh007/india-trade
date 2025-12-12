@@ -275,9 +275,27 @@ export default function Dashboard() {
                             <div className="groww-card">
                                 <h3 className="font-bold text-gray-800 mb-4">Similar Stocks</h3>
                                 <div className="space-y-4">
-                                    <SimilarStock name="Tata Consultancy" price="3,890.00" change="+1.2%" />
-                                    <SimilarStock name="HDFC Bank" price="1,650.20" change="-0.5%" />
-                                    <SimilarStock name="Infosys" price="1,540.00" change="+0.8%" />
+                                    <SimilarStock
+                                        name="Tata Consultancy"
+                                        symbol="TCS.NS"
+                                        price="3,890.00"
+                                        change="+1.2%"
+                                        onClick={() => setSymbol('TCS.NS')}
+                                    />
+                                    <SimilarStock
+                                        name="HDFC Bank"
+                                        symbol="HDFCBANK.NS"
+                                        price="1,650.20"
+                                        change="-0.5%"
+                                        onClick={() => setSymbol('HDFCBANK.NS')}
+                                    />
+                                    <SimilarStock
+                                        name="Infosys"
+                                        symbol="INFY.NS"
+                                        price="1,540.00"
+                                        change="+0.8%"
+                                        onClick={() => setSymbol('INFY.NS')}
+                                    />
                                 </div>
                             </div>
 
@@ -299,10 +317,13 @@ function StatCard({ label, value }) {
     )
 }
 
-function SimilarStock({ name, price, change }) {
+function SimilarStock({ name, symbol, price, change, onClick }) {
     const isPos = change.includes('+');
     return (
-        <div className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded transition-colors">
+        <div
+            onClick={onClick}
+            className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded transition-colors"
+        >
             <div>
                 <div className="font-medium text-gray-900 text-sm">{name}</div>
                 <div className="text-xs text-gray-500">Equity</div>
