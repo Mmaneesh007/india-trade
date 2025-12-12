@@ -14,7 +14,7 @@ const app = express();
 const httpServer = createServer(app);
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://india-trade-frontend.onrender.com', 'https://india-trades-live.onrender.com'],
+    origin: true,
     credentials: true
 }));
 app.use(express.json());
