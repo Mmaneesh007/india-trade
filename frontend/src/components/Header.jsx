@@ -2,11 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Search, TrendingUp, Bell, ShoppingCart, User } from 'lucide-react';
 import api from '../api';
 
-export default function Header({ activeTab, setActiveTab }) {
+export default function Header({ activeTab, setActiveTab, setSymbol }) {
     const [indices, setIndices] = useState({
         nifty: { price: 0, change: 0, changePercent: 0 },
         sensex: { price: 0, change: 0, changePercent: 0 }
     });
+
+    // Search State
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState([]);
+    const [showResults, setShowResults] = useState(false);
 
     useEffect(() => {
         const fetchIndices = async () => {
@@ -28,6 +33,34 @@ export default function Header({ activeTab, setActiveTab }) {
         const interval = setInterval(fetchIndices, 10000);
         return () => clearInterval(interval);
     }, []);
+
+    // Search Handler
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (query.length >= 2) {
+                try {
+                    const res = await api.get(`/api/search?q=${query}`);
+                    setResults(res.data);
+                    setShowResults(true);
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                setResults([]);
+                setShowResults(false);
+            }
+        }, 300); // Debounce
+        return () => clearTimeout(timer);
+    }, [query]);
+
+    const handleSelect = (symbol) => {
+        if (setSymbol) {
+            setSymbol(symbol);
+            setActiveTab('stocks'); // Switch to stocks tab if elsewhere
+        }
+        setQuery('');
+        setShowResults(false);
+    };
 
     return (
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -63,15 +96,37 @@ export default function Header({ activeTab, setActiveTab }) {
                 </nav>
 
                 {/* Search & Profile (Right) */}
-                <div className="flex-1 max-w-md hidden lg:block">
+                <div className="flex-1 max-w-md hidden lg:block relative">
                     <div className="relative group">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-groww-primary transition-colors" size={20} />
                         <input
                             type="text"
-                            placeholder="What are you looking for today?"
+                            placeholder="Search stocks, indices..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onFocus={() => query.length >= 2 && setShowResults(true)}
                             className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pl-10 pr-4 outline-none focus:bg-white focus:border-groww-primary/50 focus:shadow-sm transition-all text-sm"
                         />
                     </div>
+
+                    {/* Search Results Dropdown */}
+                    {showResults && results.length > 0 && (
+                        <div className="absolute top-12 left-0 w-full bg-white rounded-lg shadow-xl border border-gray-100 max-h-96 overflow-y-auto py-2 z-50">
+                            {results.map((item) => (
+                                <div
+                                    key={item.symbol}
+                                    onClick={() => handleSelect(item.symbol)}
+                                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0"
+                                >
+                                    <div className="font-bold text-gray-900">{item.symbol}</div>
+                                    <div className="text-xs text-gray-500 flex justify-between">
+                                        <span>{item.shortname || item.longname}</span>
+                                        <span className="bg-gray-100 px-1 rounded">{item.exchange}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-5 text-gray-500">

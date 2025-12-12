@@ -25,6 +25,9 @@ export default function Dashboard() {
     const [niftyData, setNiftyData] = useState(null);
     const [niftyCandles, setNiftyCandles] = useState([]);
 
+    // News Data
+    const [news, setNews] = useState([]);
+
     // Check Auth & Load Portfolio
     useEffect(() => {
         const checkUser = async () => {
@@ -35,9 +38,19 @@ export default function Dashboard() {
             }
             setUser(user);
             fetchPortfolio(user.id);
+            fetchNews(); // Load news on startup
         };
         checkUser();
     }, []);
+
+    const fetchNews = async () => {
+        try {
+            const res = await axios.get('/api/news');
+            setNews(res.data);
+        } catch (e) {
+            console.error("Failed to fetch news", e);
+        }
+    };
 
     const fetchPortfolio = async (userId) => {
         const { data, error } = await supabase
@@ -153,7 +166,7 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-groww-bg font-sans pb-20">
-            <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+            <Header activeTab={activeTab} setActiveTab={setActiveTab} setSymbol={setSymbol} />
 
             {/* MUTUAL FUNDS TAB */}
             {activeTab === 'mutual_funds' && <MutualFunds />}
@@ -163,7 +176,7 @@ export default function Dashboard() {
                 <main className="container mx-auto px-4 py-8 max-w-7xl">
 
                     {/* NSE STYLE MARKET OVERVIEW */}
-                    <MarketOverview niftyData={niftyData} niftyCandles={niftyCandles} />
+                    <MarketOverview niftyData={niftyData} niftyCandles={niftyCandles} news={news} />
 
                     <div className="border-t border-gray-200 my-8"></div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Deep Dive: Stock Analysis</h2>

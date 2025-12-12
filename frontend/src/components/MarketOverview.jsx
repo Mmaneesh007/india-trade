@@ -2,7 +2,7 @@ import React from 'react';
 import { BarChart2, PieChart, Activity, DollarSign, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import StockChart from './StockChart';
 
-export default function MarketOverview({ niftyData, niftyCandles }) {
+export default function MarketOverview({ niftyData, niftyCandles, news }) {
     // Mock Data for "Market Statistics" (Simulating NSE Breadth)
     const stats = {
         traded: '3,206',
@@ -72,13 +72,15 @@ export default function MarketOverview({ niftyData, niftyCandles }) {
                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
                     </div>
 
-                    {/* Corporate Actions / Events */}
+                    {/* Market News */}
                     <div className="groww-card">
-                        <h4 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Announcements</h4>
+                        <h4 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Top Market News</h4>
                         <div className="space-y-3">
-                            <EventItem title="HDFC Bank" desc="Board Meeting on Dec 15" date="Today" />
-                            <EventItem title="TCS" desc="Dividend Ex-Date" date="Tomorrow" />
-                            <EventItem title="Reliance" desc="AGM Scheduled" date="20 Dec" />
+                            {news && news.length > 0 ? news.slice(0, 5).map((item, i) => (
+                                <NewsItem key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} />
+                            )) : (
+                                <div className="text-gray-400 text-sm">Loading market news...</div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -162,17 +164,17 @@ function StatBox({ label, value, sub, color, text = "text-gray-900", icon }) {
     )
 }
 
-function EventItem({ title, desc, date }) {
+function NewsItem({ title, link, publisher, time }) {
+    const date = new Date(time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     return (
-        <div className="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0">
-            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded flex flex-col items-center justify-center text-xs font-bold leading-tight">
-                <span>{date.split(' ')[0]}</span>
-                <span className="text-[8px]">{date.split(' ')[1] || ''}</span>
+        <a href={link} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0 hover:bg-gray-50 transition-colors rounded p-1">
+            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded flex flex-col items-center justify-center text-xs font-bold leading-tight shrink-0">
+                <Activity size={16} />
             </div>
             <div>
-                <div className="text-sm font-bold text-gray-800">{title}</div>
-                <div className="text-xs text-gray-500">{desc}</div>
+                <div className="text-sm font-bold text-gray-800 line-clamp-2 leading-snug">{title}</div>
+                <div className="text-xs text-gray-500 mt-1">{publisher} • {date}</div>
             </div>
-        </div>
+        </a>
     )
 }

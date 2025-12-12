@@ -4,6 +4,9 @@ import { createServer } from 'http';
 import quotesRouter from './routes/quotes.js';
 import { setupSocket } from './socket.js';
 
+import searchRouter from './routes/search.js';
+import newsRouter from './routes/news.js';
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -14,6 +17,8 @@ app.use(express.json());
 setupSocket(httpServer);
 
 app.use('/api/quotes', quotesRouter);
+app.use('/api/search', searchRouter);
+app.use('/api/news', newsRouter);
 
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => console.log(`Backend listening on ${PORT}`));
