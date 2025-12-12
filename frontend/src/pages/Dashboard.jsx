@@ -273,15 +273,26 @@ export default function Dashboard() {
             {/* STOCKS NEWS TAB */}
             {activeTab === 'news' && (
                 <main className="container mx-auto px-4 py-8 max-w-[1400px]">
-                    <div className="flex items-baseline justify-between mb-8 border-b border-gray-200 pb-4">
-                        <h1 className="text-3xl font-bold text-gray-900 font-serif tracking-tight">
-                            Explore Markets News
-                        </h1>
-                        <div className="text-sm font-bold text-gray-500 flex gap-6 uppercase tracking-wider">
-                            <span className="text-black border-b-2 border-black pb-4 cursor-pointer">All</span>
-                            <span className="hover:text-black cursor-pointer transition-colors">Live Markets</span>
-                            <span className="hover:text-black cursor-pointer transition-colors">Stocks & Bonds</span>
-                            <span className="hover:text-black cursor-pointer transition-colors">Economy</span>
+                    <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-8 border-b border-gray-200 pb-4 gap-4">
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-3xl font-bold text-gray-900 font-serif tracking-tight">
+                                Explore Markets News
+                            </h1>
+                            <button
+                                onClick={fetchNews}
+                                disabled={loadingNews}
+                                className="p-2 rounded-full hover:bg-gray-100 transition-all text-gray-500 hover:text-groww-primary active:scale-95 disabled:opacity-50"
+                                title="Refresh News"
+                            >
+                                <RefreshCw size={20} className={`${loadingNews ? 'animate-spin text-groww-primary' : ''}`} />
+                            </button>
+                        </div>
+
+                        <div className="text-sm font-bold text-gray-500 flex gap-6 uppercase tracking-wider overflow-x-auto">
+                            <span className="text-black border-b-2 border-black pb-4 cursor-pointer whitespace-nowrap">All</span>
+                            <span className="hover:text-black cursor-pointer transition-colors whitespace-nowrap">Live Markets</span>
+                            <span className="hover:text-black cursor-pointer transition-colors whitespace-nowrap">Stocks & Bonds</span>
+                            <span className="hover:text-black cursor-pointer transition-colors whitespace-nowrap">Economy</span>
                         </div>
                     </div>
 
