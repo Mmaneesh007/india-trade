@@ -41,14 +41,30 @@ export const marketData = {
    */
   getCandles: async (symbol, interval = '1d') => {
     try {
-      const s = symbol.toUpperCase().endsWith('.NS') ? symbol.toUpperCase() : `${symbol.toUpperCase()}.NS`;
-      const queryOptions = { period1: '2023-01-01', interval: interval }; // Default to 1 year for now
+      let s = symbol.toUpperCase();
+
+      // Fix for Indices: Don't append .NS if it starts with ^
+      // Also don't append if already has .NS or .BO
+      if (!s.startsWith('^') && !s.endsWith('.NS') && !s.endsWith('.BO')) {
+        s = `${s}.NS`;
+      }
+
+      // Dynamic Start Date: Last 6 months (more robust than fixed year)
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 6);
+
+      const queryOptions = {
+        period1: startDate,
+        interval: interval
+      };
+
+      console.log(`Fetching candles for: ${s} from ${startDate.toISOString()}`);
+
       const result = await yahooFinance.historical(s, queryOptions);
 
       // Map to Lightweight Charts format
-      // { time: '2019-04-11', open: 80.01, high: 96.63, low: 76.6, close: 81.89 }
       return result.map(candle => ({
-        time: candle.date.toISOString().split('T')[0], // YYYY-MM-DD for daily
+        time: candle.date.toISOString().split('T')[0],
         open: candle.open,
         high: candle.high,
         low: candle.low,
@@ -57,7 +73,6 @@ export const marketData = {
       }));
     } catch (error) {
       console.error(`Error fetching candles for ${symbol}:`, error.message);
-      // Return empty instead of crashing
       return [];
     }
   }
