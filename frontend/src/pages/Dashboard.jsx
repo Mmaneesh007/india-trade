@@ -4,7 +4,7 @@ import StockChart from '../components/StockChart';
 import MutualFunds from '../components/MutualFunds';
 import MarketOverview from '../components/MarketOverview';
 import { useSocket } from '../context/SocketContext';
-import { Search, Plus, Minus, Briefcase } from 'lucide-react';
+import { Search, Plus, Minus, Briefcase, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import { MOCK_NIFTY, MOCK_RELIANCE } from '../mockData';
 
@@ -27,9 +27,40 @@ export default function Dashboard() {
 
     // News Data
     const [news, setNews] = useState([]);
+    const [similarStocks, setSimilarStocks] = useState([]);
+
+    const TOP_STOCKS = [
+        { name: "Tata Consultancy", symbol: "TCS.NS", price: "3,890.00", change: "+1.2%" },
+        { name: "HDFC Bank", symbol: "HDFCBANK.NS", price: "1,650.20", change: "-0.5%" },
+        { name: "Infosys", symbol: "INFY.NS", price: "1,540.00", change: "+0.8%" },
+        { name: "Reliance Ind", symbol: "RELIANCE.NS", price: "2,980.00", change: "+0.4%" },
+        { name: "ICICI Bank", symbol: "ICICIBANK.NS", price: "1,050.00", change: "+1.5%" },
+        { name: "State Bank of India", symbol: "SBIN.NS", price: "760.00", change: "-0.2%" },
+        { name: "Bharti Airtel", symbol: "BHARTIARTL.NS", price: "1,120.00", change: "+2.1%" },
+        { name: "ITC Ltd", symbol: "ITC.NS", price: "430.00", change: "-0.1%" },
+        { name: "Larsen & Toubro", symbol: "LT.NS", price: "3,500.00", change: "+1.0%" },
+        { name: "Kotak Mahindra", symbol: "KOTAKBANK.NS", price: "1,780.00", change: "-0.8%" },
+        { name: "Axis Bank", symbol: "AXISBANK.NS", price: "1,080.00", change: "+0.5%" },
+        { name: "Hindustan Unilever", symbol: "HINDUNILVR.NS", price: "2,350.00", change: "-0.3%" },
+        { name: "Bajaj Finance", symbol: "BAJFINANCE.NS", price: "6,900.00", change: "+1.8%" },
+        { name: "Asian Paints", symbol: "ASIANPAINT.NS", price: "2,850.00", change: "-1.2%" },
+        { name: "Maruti Suzuki", symbol: "MARUTI.NS", price: "11,500.00", change: "+0.6%" },
+        { name: "Titan Company", symbol: "TITAN.NS", price: "3,650.00", change: "+0.9%" },
+        { name: "Sun Pharma", symbol: "SUNPHARMA.NS", price: "1,550.00", change: "+1.1%" },
+        { name: "Tata Motors", symbol: "TATAMOTORS.NS", price: "950.00", change: "+2.5%" },
+        { name: "NTPC Ltd", symbol: "NTPC.NS", price: "340.00", change: "-0.4%" },
+        { name: "Power Grid", symbol: "POWERGRID.NS", price: "280.00", change: "+0.7%" }
+    ];
+
+    const refreshSimilarStocks = () => {
+        // Shuffle and pick 3
+        const shuffled = [...TOP_STOCKS].sort(() => 0.5 - Math.random());
+        setSimilarStocks(shuffled.slice(0, 3));
+    };
 
     // Check Auth & Load Portfolio
     useEffect(() => {
+        refreshSimilarStocks(); // Initial Random Load
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
@@ -273,29 +304,25 @@ export default function Dashboard() {
 
                             {/* Similar Stocks */}
                             <div className="groww-card">
-                                <h3 className="font-bold text-gray-800 mb-4">Similar Stocks</h3>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-gray-800">Similar Stocks</h3>
+                                    <RefreshCw
+                                        size={16}
+                                        className="text-gray-400 cursor-pointer hover:text-groww-primary transition-colors hover:rotate-180 duration-500"
+                                        onClick={refreshSimilarStocks}
+                                    />
+                                </div>
                                 <div className="space-y-4">
-                                    <SimilarStock
-                                        name="Tata Consultancy"
-                                        symbol="TCS.NS"
-                                        price="3,890.00"
-                                        change="+1.2%"
-                                        onClick={() => setSymbol('TCS.NS')}
-                                    />
-                                    <SimilarStock
-                                        name="HDFC Bank"
-                                        symbol="HDFCBANK.NS"
-                                        price="1,650.20"
-                                        change="-0.5%"
-                                        onClick={() => setSymbol('HDFCBANK.NS')}
-                                    />
-                                    <SimilarStock
-                                        name="Infosys"
-                                        symbol="INFY.NS"
-                                        price="1,540.00"
-                                        change="+0.8%"
-                                        onClick={() => setSymbol('INFY.NS')}
-                                    />
+                                    {similarStocks.map((stock) => (
+                                        <SimilarStock
+                                            key={stock.symbol}
+                                            name={stock.name}
+                                            symbol={stock.symbol}
+                                            price={stock.price}
+                                            change={stock.change}
+                                            onClick={() => setSymbol(stock.symbol)}
+                                        />
+                                    ))}
                                 </div>
                             </div>
 
