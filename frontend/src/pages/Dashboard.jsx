@@ -289,31 +289,48 @@ export default function Dashboard() {
 
             {/* STOCKS NEWS TAB */}
             {activeTab === 'news' && (
-                <main className="container mx-auto px-4 py-8 max-w-7xl">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2 font-serif">
-                        <span className="bg-groww-primary/10 p-2 rounded-lg text-groww-primary">📰</span>
-                        Top Market Headlines
-                    </h1>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <main className="container mx-auto px-4 py-8 max-w-[1400px]">
+                    <div className="flex items-baseline justify-between mb-8 border-b border-gray-200 pb-4">
+                        <h1 className="text-3xl font-bold text-gray-900 font-serif tracking-tight">
+                            Explore Markets News
+                        </h1>
+                        <div className="text-sm font-bold text-gray-500 flex gap-6 uppercase tracking-wider">
+                            <span className="text-black border-b-2 border-black pb-4 cursor-pointer">All</span>
+                            <span className="hover:text-black cursor-pointer transition-colors">Live Markets</span>
+                            <span className="hover:text-black cursor-pointer transition-colors">Stocks & Bonds</span>
+                            <span className="hover:text-black cursor-pointer transition-colors">Economy</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
                         {news.map((item, i) => (
-                            <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="group bg-white flex flex-col h-full rounded-xl overflow-hidden hover:shadow-lg transition-shadow border border-gray-100">
-                                <div className="h-48 bg-gray-200 relative overflow-hidden">
+                            <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="group flex flex-col h-full bg-transparent hover:opacity-95 transition-opacity">
+                                {/* Image Container */}
+                                <div className="h-48 bg-gray-200 w-full mb-4 relative overflow-hidden rounded-sm">
                                     {item.thumbnail?.resolutions?.[0]?.url ? (
-                                        <img src={item.thumbnail.resolutions[0].url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                        <img src={item.thumbnail.resolutions[0].url} alt="" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-100">News</div>
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-100 italic font-serif">
+                                            Market News
+                                        </div>
                                     )}
-                                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-800 rounded-sm">
-                                        Market Update
-                                    </div>
                                 </div>
-                                <div className="p-5 flex flex-col flex-1">
-                                    <h3 className="text-lg font-bold text-gray-900 leading-tight mb-3 font-serif line-clamp-3 group-hover:text-groww-primary transition-colors">
+
+                                {/* Content */}
+                                <div className="flex flex-col flex-1">
+                                    {/* Tag */}
+                                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 font-sans">
+                                        MARKETS NEWS
+                                    </div>
+
+                                    {/* Headline */}
+                                    <h3 className="text-lg font-bold text-gray-900 leading-[1.3] mb-2 font-serif group-hover:text-groww-primary transition-colors line-clamp-3">
                                         {item.title}
                                     </h3>
-                                    <div className="mt-auto pt-4 flex items-center justify-between text-xs text-gray-500 bg-white">
-                                        <span className="font-bold text-gray-700 uppercase tracking-wide">{item.publisher}</span>
-                                        <span>{new Date(item.providerPublishTime * 1000).toLocaleDateString()}</span>
+
+                                    {/* Author */}
+                                    <div className="mt-auto text-xs text-gray-500 font-sans">
+                                        By <span className="uppercase text-gray-800 font-bold">{item.publisher || "Staff"}</span>
                                     </div>
                                 </div>
                             </a>

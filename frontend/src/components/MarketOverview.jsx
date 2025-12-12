@@ -114,29 +114,7 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
                 <MarketMovers />
             </div>
 
-            {/* SECTION 3: FULL WIDTH NEWS GRID (Investopedia Style) */}
-            <div className="mt-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 font-serif border-l-4 border-groww-primary pl-3">
-                    <TrendingUp size={24} className="text-groww-primary" /> Explore Markets News
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {news && news.length > 0 ? news.map((item, i) => (
-                        <NewsCard key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} thumbnail={item.thumbnail} />
-                    )) : (
-                        // Skeleton Loading State
-                        [1, 2, 3, 4].map(i => (
-                            <div key={i} className="bg-white rounded-lg border border-gray-100 overflow-hidden animate-pulse h-[300px]">
-                                <div className="h-40 bg-gray-200 w-full"></div>
-                                <div className="p-4 space-y-3">
-                                    <div className="h-4 bg-gray-200 w-3/4 rounded"></div>
-                                    <div className="h-4 bg-gray-200 w-1/2 rounded"></div>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
+            {/* News Section Removed - Moved to dedicated "Stocks News" Tab */}
 
             {/* SECTION 4: BOTTOM ROW (IPO, Events, Learn) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
