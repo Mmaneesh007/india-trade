@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import StockChart from '../components/StockChart';
 import MutualFunds from '../components/MutualFunds';
 import MarketOverview from '../components/MarketOverview';
+import MarketTurnover from '../components/MarketTurnover';
 import TransactionHistory from '../components/TransactionHistory';
 import Watchlist from '../components/Watchlist';
 import { useSocket } from '../context/SocketContext';
@@ -438,6 +439,11 @@ export default function Dashboard() {
             {activeTab === 'stocks' && (
                 <main className="container mx-auto px-4 py-8 max-w-7xl">
                     <MarketOverview niftyData={niftyData} niftyCandles={niftyCandles} news={[]} /> {/* Force empty news for Overview */}
+
+                    {/* Market Turnover - Real-time NSE Data */}
+                    <div className="my-8">
+                        <MarketTurnover />
+                    </div>
 
                     <div className="border-t border-gray-200 my-8"></div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Deep Dive: Stock Analysis</h2>
