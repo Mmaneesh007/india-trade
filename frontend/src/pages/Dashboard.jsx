@@ -278,12 +278,6 @@ export default function Dashboard() {
         <div className="min-h-screen bg-groww-bg font-sans pb-20">
             <Header activeTab={activeTab} setActiveTab={setActiveTab} setSymbol={setSymbol} />
 
-// ... imports
-
-            // Exporting NewsCard from MarketOverview would be clean, but let's just create a dedicated component or import it if I export it.
-            // I will export NewsCard from MarketOverview.jsx in the next step.
-            // For now, let's setup the Tab switch.
-
             {/* MUTUAL FUNDS TAB */}
             {activeTab === 'mutual_funds' && <MutualFunds />}
 
@@ -303,7 +297,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-                        {news.map((item, i) => (
+                        {news && news.length > 0 ? news.map((item, i) => (
                             <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="group flex flex-col h-full bg-transparent hover:opacity-95 transition-opacity">
                                 {/* Image Container */}
                                 <div className="h-48 bg-gray-200 w-full mb-4 relative overflow-hidden rounded-sm">
