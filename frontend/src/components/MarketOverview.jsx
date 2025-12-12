@@ -1,31 +1,51 @@
 import React from 'react';
-import { BarChart2, PieChart, Activity, DollarSign, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { BarChart2, PieChart, Activity, DollarSign, ArrowUp, ArrowDown, Minus, TrendingUp } from 'lucide-react';
 import StockChart from './StockChart';
+import {
+    SectorPerformance,
+    GlobalMarkets,
+    FIIDIIStats,
+    MarketHeatmap,
+    IPOWatch,
+    EventsCalendar,
+    LearningCard,
+    MarketMovers
+} from './ProFeatures';
 
 export default function MarketOverview({ niftyData, niftyCandles, news }) {
-    // Mock Data for "Market Statistics" (Simulating NSE Breadth)
-    const stats = {
-        traded: '3,206',
-        advances: 1915,
-        declines: 1173,
-        unchanged: 118,
-        high52: 28,
-        low52: 105
-    };
+    // Real Market Statistics
+    const [stats, setStats] = React.useState({
+        traded: '-',
+        advances: '-',
+        declines: '-',
+        unchanged: '-',
+        high52: '-',
+        low52: '-'
+    });
 
-    const turnover = [
-        { seg: 'Equity', vol: '393.58 Cr', val: '70,300.78', oi: '-' },
-        { seg: 'Derivatives', vol: '7.77 Cr', val: '1,36,223.39', oi: '2.10 Cr' },
-        { seg: 'Currency', vol: '3.14 L', val: '2,838.93', oi: '15.84 L' },
-    ];
+    React.useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                // We need to import axios or pass it, but assuming standard fetch or axios is available in scope or we import it.
+                // Since this component doesn't have axios imported, let's use fetch which is native.
+                const res = await fetch('https://india-trade-backend.onrender.com/api/market/breadth');
+                const data = await res.json();
+                if (data.traded) setStats(data);
+            } catch (e) {
+                console.error("Stats fetch failed", e);
+            }
+        };
+        fetchStats();
+    }, []);
 
     return (
-        <div className="space-y-6 mb-8">
+        <div className="space-y-6 mb-8 text-gray-800">
 
-            {/* Top Section: Chart + Info */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Chart (Nifty 50) */}
-                <div className="lg:col-span-2 groww-card p-0 overflow-hidden flex flex-col h-[400px]">
+            {/* SECTION 1: MAIN DASHBOARD GRID (Bento Style) */}
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+
+                {/* COL 1 & 2: MAIN CHART (Wide) */}
+                <div className="xl:col-span-2 groww-card p-0 overflow-hidden flex flex-col h-[400px]">
                     <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <div>
                             <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
@@ -48,132 +68,83 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
                     </div>
                 </div>
 
-                {/* Market Pulse / Announcements Sidebar */}
-                <div className="space-y-6">
-                    <div className="groww-card bg-gradient-to-br from-[#1d1d42] to-[#121230] text-white border-none relative overflow-hidden">
-                        <div className="relative z-10">
-                            <h3 className="font-bold text-lg mb-2 text-yellow-400">Market Status</h3>
-                            <div className="flex items-center gap-2 text-sm mb-6">
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                Open • Pre-Close Session
-                            </div>
+                {/* COL 3: SECTOR PERFORMANCE */}
+                <div className="xl:col-span-1">
+                    <SectorPerformance />
+                </div>
 
-                            <div className="grid grid-cols-2 gap-4 text-center">
-                                <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-                                    <div className="text-xs text-gray-300">VIX</div>
-                                    <div className="font-mono font-bold text-red-300">13.45</div>
-                                </div>
-                                <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-                                    <div className="text-xs text-gray-300">USD/INR</div>
-                                    <div className="font-mono font-bold text-green-300">83.12</div>
-                                </div>
-                            </div>
+                {/* COL 4: GLOBAL MARKETS */}
+                <div className="xl:col-span-1">
+                    <GlobalMarkets />
+                </div>
+            </div>
+
+            {/* SECTION 2: DENSITY ROW (Stats + FII/DII + Heatmap) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                {/* Market Stats Strip (Vertical now for better fit or Keep Horizontal block) */}
+                <div className="groww-card flex flex-col justify-between">
+                    <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <Activity size={18} className="text-blue-500" /> Market Breadth
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center p-2 bg-green-50 rounded">
+                            <div className="text-xl font-bold text-green-600">{stats.advances}</div>
+                            <div className="text-xs text-gray-500">Advances</div>
                         </div>
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                        <div className="text-center p-2 bg-red-50 rounded">
+                            <div className="text-xl font-bold text-red-500">{stats.declines}</div>
+                            <div className="text-xs text-gray-500">Declines</div>
+                        </div>
+                        <div className="text-center p-2 bg-gray-50 rounded">
+                            <div className="text-xl font-bold text-gray-600">{stats.unchanged}</div>
+                            <div className="text-xs text-gray-500">Unchanged</div>
+                        </div>
+                        <div className="text-center p-2 bg-blue-50 rounded">
+                            <div className="text-xl font-bold text-blue-600">{stats.high52}</div>
+                            <div className="text-xs text-gray-500">52W High</div>
+                        </div>
                     </div>
+                </div>
 
-                    {/* Market News */}
-                    <div className="groww-card">
-                        <h4 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Top Market News</h4>
-                        <div className="space-y-3">
-                            {news && news.length > 0 ? news.slice(0, 5).map((item, i) => (
-                                <NewsItem key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} />
-                            )) : (
-                                <div className="text-gray-400 text-sm">Loading market news...</div>
-                            )}
-                        </div>
+                <FIIDIIStats />
+
+                <MarketHeatmap />
+
+                {/* TOP NEWS (Replaced old static events) */}
+                <div className="groww-card">
+                    <h4 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                        <TrendingUp size={16} /> Latest News
+                    </h4>
+                    <div className="space-y-3 overflow-y-auto max-h-[220px] custom-scrollbar">
+                        {news && news.length > 0 ? news.slice(0, 5).map((item, i) => (
+                            <NewsItem key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} />
+                        )) : (
+                            <div className="text-gray-400 text-sm">Loading market news...</div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* NSE STYLE STATISTICS STRIP */}
-            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <Activity size={20} className="text-groww-blue" /> Market Statistics
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <StatBox label="Stocks Traded" value={stats.traded} color="border-l-4 border-blue-500" />
-                <StatBox label="Advances" value={stats.advances} sub="(Nifty 500)" color="border-l-4 border-groww-primary" text="text-groww-primary" icon={<ArrowUp size={16} />} />
-                <StatBox label="Declines" value={stats.declines} sub="(Nifty 500)" color="border-l-4 border-groww-red" text="text-groww-red" icon={<ArrowDown size={16} />} />
-                <StatBox label="Unchanged" value={stats.unchanged} color="border-l-4 border-gray-400" text="text-gray-500" icon={<Minus size={16} />} />
+            {/* SECTION 3: BOTTOM ROW (IPO, Events, Learn, Movers) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                <IPOWatch />
+                <EventsCalendar />
+                <MarketMovers />
+                <LearningCard />
             </div>
 
-            {/* TURNOVER TABLE */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                <div className="lg:col-span-2 groww-card p-0 overflow-hidden">
-                    <div className="bg-gray-50 px-6 py-3 border-b border-gray-100 flex justify-between items-center">
-                        <h3 className="font-bold text-gray-800">Market Turnover</h3>
-                        <span className="text-xs text-gray-500">All Segments (Cr)</span>
-                    </div>
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-white text-gray-500 border-b border-gray-100">
-                            <tr>
-                                <th className="px-6 py-3 font-medium">Segment</th>
-                                <th className="px-6 py-3 font-medium text-right">Volume</th>
-                                <th className="px-6 py-3 font-medium text-right">Value (Cr)</th>
-                                <th className="px-6 py-3 font-medium text-right">Open Interest</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {turnover.map((row, i) => (
-                                <tr key={i} className="hover:bg-gray-50/50">
-                                    <td className="px-6 py-3 font-medium text-gray-900">{row.seg}</td>
-                                    <td className="px-6 py-3 text-right text-gray-600">{row.vol}</td>
-                                    <td className="px-6 py-3 text-right text-gray-600">{row.val}</td>
-                                    <td className="px-6 py-3 text-right text-gray-600">{row.oi}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* High/Low Widget */}
-                <div className="groww-card flex flex-col justify-center gap-4">
-                    <h3 className="font-bold text-gray-800 text-center mb-2">52 Week High / Low</h3>
-                    <div className="flex justify-between items-center px-4">
-                        <div className="text-center">
-                            <div className="w-16 h-16 rounded-full border-4 border-groww-primary flex items-center justify-center text-xl font-bold text-groww-primary mb-2">
-                                {stats.high52}
-                            </div>
-                            <div className="text-xs text-gray-500 font-medium">New Highs</div>
-                        </div>
-                        <div className="h-10 w-[1px] bg-gray-200"></div>
-                        <div className="text-center">
-                            <div className="w-16 h-16 rounded-full border-4 border-groww-red flex items-center justify-center text-xl font-bold text-groww-red mb-2">
-                                {stats.low52}
-                            </div>
-                            <div className="text-xs text-gray-500 font-medium">New Lows</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
-}
-
-function StatBox({ label, value, sub, color, text = "text-gray-900", icon }) {
-    return (
-        <div className={`groww-card py-4 ${color}`}>
-            <div className="text-xs text-gray-500 uppercase font-semibold tracking-wider mb-1">{label}</div>
-            <div className={`flex items-center gap-2 text-2xl font-bold ${text}`}>
-                {icon}
-                {value}
-            </div>
-            {sub && <div className="text-[10px] text-gray-400 mt-1">{sub}</div>}
-        </div>
-    )
 }
 
 function NewsItem({ title, link, publisher, time }) {
     const date = new Date(time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     return (
         <a href={link} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0 hover:bg-gray-50 transition-colors rounded p-1">
-            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded flex flex-col items-center justify-center text-xs font-bold leading-tight shrink-0">
-                <Activity size={16} />
-            </div>
+            <div className="min-w-[4px] h-full bg-groww-primary/20 rounded-full mr-1"></div>
             <div>
-                <div className="text-sm font-bold text-gray-800 line-clamp-2 leading-snug">{title}</div>
-                <div className="text-xs text-gray-500 mt-1">{publisher} • {date}</div>
+                <div className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug hover:text-groww-primary transition-colors">{title}</div>
+                <div className="text-[10px] text-gray-500 mt-1">{publisher} • {date}</div>
             </div>
         </a>
     )

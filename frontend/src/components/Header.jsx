@@ -75,21 +75,21 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                 </div>
 
                 {/* Navigation Tabs (Center-Left) */}
-                <nav className="hidden md:flex items-center gap-6 font-medium text-gray-500">
+                <nav className="hidden md:flex items-center gap-8 font-medium text-gray-500">
                     <button
                         onClick={() => setActiveTab('stocks')}
-                        className={`hover:text-black transition-colors ${activeTab === 'stocks' ? 'text-black font-semibold' : ''}`}
+                        className={`text-base transition-colors py-2 border-b-2 ${activeTab === 'stocks' ? 'text-groww-primary border-groww-primary font-bold' : 'border-transparent hover:text-gray-900'}`}
                     >
-                        Explore
+                        Stocks
                     </button>
                     <button
                         onClick={() => setActiveTab('mutual_funds')}
-                        className={`hover:text-black transition-colors ${activeTab === 'mutual_funds' ? 'text-black font-semibold' : ''}`}
+                        className={`text-base transition-colors py-2 border-b-2 ${activeTab === 'mutual_funds' ? 'text-groww-primary border-groww-primary font-bold' : 'border-transparent hover:text-gray-900'}`}
                     >
                         Mutual Funds
                     </button>
-                    <div className="h-4 w-[1px] bg-gray-300 mx-2"></div>
-                    <div className="flex gap-4 text-xs">
+                    <div className="h-6 w-[1px] bg-gray-200 mx-2"></div>
+                    <div className="flex gap-6 text-sm">
                         <IndexTicker name="NIFTY" data={indices.nifty} />
                         <IndexTicker name="SENSEX" data={indices.sensex} />
                     </div>

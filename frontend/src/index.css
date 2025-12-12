@@ -7,7 +7,9 @@
 }
 
 body {
-  background-color: #F5F7F8;
+  background-color: #F8F9FA;
+  background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
+  background-size: 24px 24px;
   color: #44475B;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
