@@ -13,7 +13,10 @@ import watchlistRouter from './routes/watchlist.js';
 const app = express();
 const httpServer = createServer(app);
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173', 'https://india-trade-frontend.onrender.com', 'https://india-trades-live.onrender.com'],
+    credentials: true
+}));
 app.use(express.json());
 
 // Initialize Socket.io
