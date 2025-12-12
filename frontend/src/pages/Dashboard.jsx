@@ -5,7 +5,7 @@ import MutualFunds from '../components/MutualFunds';
 import MarketOverview from '../components/MarketOverview';
 import { useSocket } from '../context/SocketContext';
 import { Search, Plus, Minus, Briefcase, RefreshCw } from 'lucide-react';
-import axios from 'axios';
+import api from '../api'; // Centralized API Client
 import { MOCK_NIFTY, MOCK_RELIANCE, generateSmartCandles } from '../mockData';
 
 import { supabase } from '../supabaseClient';
@@ -14,8 +14,8 @@ import { useNavigate } from 'react-router-dom';
 export default function Dashboard() {
     const { socket, isConnected } = useSocket();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('stocks'); // stocks | mutual_funds
-    const [symbol, setSymbol] = useState('RELIANCE');
+    const [activeTab, setActiveTab] = useState('stocks'); // stocks | mutual_funds | news
+    const [symbol, setSymbol] = useState('RELIANCE.NS'); // Default to full symbol
     const [priceData, setPriceData] = useState(null);
     const [candles, setCandles] = useState(MOCK_RELIANCE.candles);
     const [portfolio, setPortfolio] = useState({ shares: 0, invested: 0 });
@@ -27,6 +27,7 @@ export default function Dashboard() {
 
     // News Data
     const [news, setNews] = useState([]);
+    const [loadingNews, setLoadingNews] = useState(true);
     const [similarStocks, setSimilarStocks] = useState([]);
 
     const TOP_STOCKS = [
@@ -53,14 +54,13 @@ export default function Dashboard() {
     ];
 
     const refreshSimilarStocks = () => {
-        // Shuffle and pick 3
         const shuffled = [...TOP_STOCKS].sort(() => 0.5 - Math.random());
         setSimilarStocks(shuffled.slice(0, 3));
     };
 
     // Check Auth & Load Portfolio
     useEffect(() => {
-        refreshSimilarStocks(); // Initial Random Load
+        refreshSimilarStocks();
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
@@ -69,17 +69,22 @@ export default function Dashboard() {
             }
             setUser(user);
             fetchPortfolio(user.id);
-            fetchNews(); // Load news on startup
+            fetchNews();
         };
         checkUser();
     }, []);
 
     const fetchNews = async () => {
+        setLoadingNews(true);
         try {
-            const res = await axios.get('/api/news');
+            // Using API client handles base URL automatically
+            const res = await api.get('/api/news');
             setNews(res.data);
         } catch (e) {
             console.error("Failed to fetch news", e);
+            setNews([]);
+        } finally {
+            setLoadingNews(false);
         }
     };
 
@@ -129,14 +134,12 @@ export default function Dashboard() {
 
     const fetchStockData = async (sym) => {
         try {
-            // First fetch the Quote (Real Price) specifically
-            const snapRes = await axios.get(`/api/quotes/latest/${sym}`);
-            const realPrice = snapRes.data.price || 1500; // Fallback default
+            const snapRes = await api.get(`/api/quotes/latest/${sym}`);
+            const realPrice = snapRes.data.price || 1500;
             setPriceData(snapRes.data);
 
             try {
-                // Then try to fetch candles
-                const candleRes = await axios.get(`/api/quotes/candles/${sym}`);
+                const candleRes = await api.get(`/api/quotes/candles/${sym}`);
                 if (candleRes.data.candles && candleRes.data.candles.length > 0) {
                     setCandles(candleRes.data.candles);
                 } else {
@@ -144,14 +147,12 @@ export default function Dashboard() {
                 }
             } catch (candleErr) {
                 console.warn(`Candle fetch failed for ${sym}, generating smart pattern for price ${realPrice}`);
-                // Use Smart Fallback: Generate unique candles ending at the REAL price
                 const smartCandles = generateSmartCandles(sym, realPrice, 100);
                 setCandles(smartCandles);
             }
 
         } catch (e) {
             console.error("Critical fetch failed", e);
-            // Even if everything fails, make a random chart
             const randomPrice = 1000 + Math.random() * 2000;
             setPriceData({
                 symbol: sym,
@@ -168,14 +169,13 @@ export default function Dashboard() {
     const fetchNiftyData = async () => {
         try {
             const [snapRes, candleRes] = await Promise.all([
-                axios.get(`/api/quotes/latest/^NSEI`),
-                axios.get(`/api/quotes/candles/^NSEI`)
+                api.get(`/api/quotes/latest/^NSEI`),
+                api.get(`/api/quotes/candles/^NSEI`)
             ]);
             setNiftyData(snapRes.data);
             if (candleRes.data.candles && candleRes.data.candles.length > 0) {
                 setNiftyCandles(candleRes.data.candles);
             } else {
-                console.warn("Using Mock Candles for Nifty");
                 setNiftyCandles(MOCK_NIFTY.candles);
             }
         } catch (e) {
@@ -192,7 +192,7 @@ export default function Dashboard() {
             .insert([{
                 user_id: user.id,
                 symbol: symbol,
-                type: type, // 'BUY' or 'SELL'
+                type: type,
                 quantity: qty,
                 price: price,
                 timestamp: new Date().toISOString()
@@ -202,15 +202,12 @@ export default function Dashboard() {
 
     const handleBuy = async () => {
         if (!priceData || !user) return;
-
         const newQty = portfolio.shares + 1;
         const newInvested = portfolio.invested + priceData.price;
         const newAvgPrice = newInvested / newQty;
 
-        // Optimistic Update
         setPortfolio({ shares: newQty, invested: newInvested });
 
-        // Save to Supabase
         const { error } = await supabase
             .from('portfolio')
             .upsert({
@@ -237,39 +234,31 @@ export default function Dashboard() {
         }
 
         const newQty = portfolio.shares - 1;
-        // Invested amount decreases proportionally
         const avgPrice = portfolio.invested / portfolio.shares;
         const newInvested = avgPrice * newQty;
 
-        // Optimistic Update
         setPortfolio({ shares: newQty, invested: newInvested });
 
         if (newQty > 0) {
-            // Update Portfolio
             const { error } = await supabase
                 .from('portfolio')
                 .upsert({
                     user_id: user.id,
                     symbol: symbol,
                     quantity: newQty,
-                    average_price: avgPrice // Avg price doesn't change on sell
+                    average_price: avgPrice
                 }, { onConflict: 'user_id, symbol' });
-
             if (error) console.error('Sell update failed', error);
         } else {
-            // Delete if 0
             const { error } = await supabase
                 .from('portfolio')
                 .delete()
                 .eq('user_id', user.id)
                 .eq('symbol', symbol);
-
             if (error) console.error('Sell delete failed', error);
         }
 
         logTransaction('SELL', 1, priceData.price);
-
-        // Calculate P&L for this specific share
         const pnl = priceData.price - avgPrice;
         alert(`Sold 1 Qty of ${symbol} at ₹${priceData.price.toFixed(2)}. ${pnl >= 0 ? 'Profit' : 'Loss'}: ₹${Math.abs(pnl).toFixed(2)}`);
     };
@@ -297,7 +286,7 @@ export default function Dashboard() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
-                        {news && news.length > 0 ? news.map((item, i) => (
+                        {!loadingNews && news.length > 0 ? news.map((item, i) => (
                             <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="group flex flex-col h-full bg-transparent hover:opacity-95 transition-opacity">
                                 {/* Image Container */}
                                 <div className="h-48 bg-gray-200 w-full mb-4 relative overflow-hidden rounded-sm">
@@ -309,27 +298,15 @@ export default function Dashboard() {
                                         </div>
                                     )}
                                 </div>
-
                                 {/* Content */}
                                 <div className="flex flex-col flex-1">
-                                    {/* Tag */}
-                                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 font-sans">
-                                        MARKETS NEWS
-                                    </div>
-
-                                    {/* Headline */}
-                                    <h3 className="text-lg font-bold text-gray-900 leading-[1.3] mb-2 font-serif group-hover:text-groww-primary transition-colors line-clamp-3">
-                                        {item.title}
-                                    </h3>
-
-                                    {/* Author */}
-                                    <div className="mt-auto text-xs text-gray-500 font-sans">
-                                        By <span className="uppercase text-gray-800 font-bold">{item.publisher || "Staff"}</span>
-                                    </div>
+                                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 font-sans">MARKETS NEWS</div>
+                                    <h3 className="text-lg font-bold text-gray-900 leading-[1.3] mb-2 font-serif group-hover:text-groww-primary transition-colors line-clamp-3">{item.title}</h3>
+                                    <div className="mt-auto text-xs text-gray-500 font-sans">By <span className="uppercase text-gray-800 font-bold">{item.publisher || "Staff"}</span></div>
                                 </div>
                             </a>
                         )) : (
-                            // Skeleton Loading State for News
+                            // Skeleton Loading State
                             [1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                                 <div key={i} className="animate-pulse flex flex-col h-full bg-transparent">
                                     <div className="h-48 bg-gray-200 w-full mb-4 rounded-sm"></div>
@@ -349,10 +326,7 @@ export default function Dashboard() {
             {/* STOCKS TAB */}
             {activeTab === 'stocks' && (
                 <main className="container mx-auto px-4 py-8 max-w-7xl">
-                    {/* ... existing stocks content ... */}
-
-                    {/* NSE STYLE MARKET OVERVIEW */}
-                    <MarketOverview niftyData={niftyData} niftyCandles={niftyCandles} news={news} />
+                    <MarketOverview niftyData={niftyData} niftyCandles={niftyCandles} news={[]} /> {/* Force empty news for Overview */}
 
                     <div className="border-t border-gray-200 my-8"></div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Deep Dive: Stock Analysis</h2>
@@ -392,14 +366,12 @@ export default function Dashboard() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
                         {/* Main Chart */}
                         <div className="lg:col-span-2">
                             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-1 h-[500px]">
                                 <StockChart data={candles} />
                             </div>
 
-                            {/* Quick Fundamentals */}
                             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <StatCard label="Market Cap" value="₹12.4T" />
                                 <StatCard label="P/E Ratio" value="24.5" />
@@ -408,10 +380,8 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        {/* Sidebar / Portfolio */}
+                        {/* Sidebar */}
                         <div className="space-y-6">
-
-                            {/* Your Holdings Card */}
                             <div className="groww-card">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="font-bold text-gray-800 flex items-center gap-2">
@@ -419,7 +389,6 @@ export default function Dashboard() {
                                         Your Position
                                     </h3>
                                 </div>
-
                                 {portfolio.shares > 0 ? (
                                     <div className="space-y-3">
                                         <div className="flex justify-between text-sm">
@@ -447,7 +416,6 @@ export default function Dashboard() {
                                 )}
                             </div>
 
-                            {/* Similar Stocks */}
                             <div className="groww-card">
                                 <div className="flex justify-between items-center mb-4">
                                     <h3 className="font-bold text-gray-800">Similar Stocks</h3>
@@ -470,9 +438,7 @@ export default function Dashboard() {
                                     ))}
                                 </div>
                             </div>
-
                         </div>
-
                     </div>
                 </main>
             )}
