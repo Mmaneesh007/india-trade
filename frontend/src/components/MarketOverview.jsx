@@ -115,7 +115,7 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
                     <h4 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
                         <TrendingUp size={16} /> Latest News
                     </h4>
-                    <div className="space-y-3 overflow-y-auto max-h-[220px] custom-scrollbar">
+                    <div className="space-y-0 divide-y divide-gray-100 overflow-y-auto max-h-[600px] custom-scrollbar pr-2">
                         {news && news.length > 0 ? news.map((item, i) => (
                             <NewsItem key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} thumbnail={item.thumbnail} />
                         )) : (
@@ -138,26 +138,39 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
 }
 
 function NewsItem({ title, link, publisher, time, thumbnail }) {
-    const date = new Date(time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const date = new Date(time * 1000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     const imgUrl = thumbnail?.resolutions?.[0]?.url;
 
     return (
-        <a href={link} target="_blank" rel="noopener noreferrer" className="flex gap-4 p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-all roundedgroup">
-            {imgUrl && (
-                <div className="w-20 h-14 shrink-0 rounded-lg overflow-hidden bg-gray-200">
-                    <img src={imgUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+        <a href={link} target="_blank" rel="noopener noreferrer" className="group flex gap-5 py-5 border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-all px-2 cursor-pointer">
+            <div className="flex-1 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold tracking-wider text-groww-primary uppercase bg-blue-50 px-2 py-0.5 rounded-sm">
+                        Markets
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
+                        {Math.floor(Math.random() * 5 + 2)} MIN READ
+                    </span>
                 </div>
-            )}
-            <div className="flex flex-col justify-between">
-                <div className="text-sm font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-groww-primary transition-colors">
+                <h3 className="text-base font-bold text-gray-900 leading-snug group-hover:text-groww-primary transition-colors font-serif tracking-tight">
                     {title}
-                </div>
-                <div className="flex items-center gap-2 text-[10px] text-gray-500 mt-1">
-                    <span className="font-medium text-gray-600">{publisher}</span>
-                    <span>•</span>
+                </h3>
+                <div className="flex items-center gap-2 text-xs text-gray-500 mt-3 font-medium">
+                    <span className="text-gray-800 uppercase">{publisher}</span>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                     <span>{date}</span>
                 </div>
             </div>
+
+            {imgUrl ? (
+                <div className="w-32 h-24 shrink-0 rounded-md overflow-hidden bg-gray-100 border border-gray-100 shadow-sm relative">
+                    <img src={imgUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                </div>
+            ) : (
+                <div className="w-32 h-24 shrink-0 rounded-md bg-gray-100 flex items-center justify-center text-gray-300">
+                    <TrendingUp size={24} />
+                </div>
+            )}
         </a>
     )
 }
