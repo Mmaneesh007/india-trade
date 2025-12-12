@@ -225,11 +225,11 @@ export const IPOWatch = () => {
 // 7. Quick Learning
 export const LearningCard = () => {
     const topics = [
-        { title: 'Option Greeks', desc: 'Understanding Delta, Gamma, Theta is key to mastering F&O.', query: 'option greeks investopedia' },
-        { title: 'RSI Indicator', desc: 'Relative Strength Index helps identify overbought or oversold stocks.', query: 'RSI indicator trading' },
-        { title: 'P/E Ratio', desc: 'Price-to-Earnings ratio determines if a stock is overvalued.', query: 'PE ratio explained' },
-        { title: 'Candlestick Patterns', desc: 'Hammer, Doji, and Engulfing patterns signal market reversals.', query: 'candlestick patterns cheat sheet' },
-        { title: 'Support & Resistance', desc: 'Key levels where price tends to bounce or break through.', query: 'support and resistance trading' }
+        { title: 'Option Greeks', desc: 'Understanding Delta, Gamma, Theta is key to mastering F&O.', url: 'https://www.investopedia.com/trading/getting-to-know-the-greeks/' },
+        { title: 'RSI Indicator', desc: 'Relative Strength Index helps identify overbought or oversold stocks.', url: 'https://www.investopedia.com/terms/r/rsi.asp' },
+        { title: 'P/E Ratio', desc: 'Price-to-Earnings ratio determines if a stock is overvalued.', url: 'https://www.investopedia.com/terms/p/price-earningsratio.asp' },
+        { title: 'Candlestick Patterns', desc: 'Hammer, Doji, and Engulfing patterns signal market reversals.', url: 'https://www.investopedia.com/trading/candlestick-charting-what-is-it/' },
+        { title: 'Support & Resistance', desc: 'Key levels where price tends to bounce or break through.', url: 'https://www.investopedia.com/trading/support-and-resistance-basics/' }
     ];
 
     const [index, setIndex] = React.useState(0);
@@ -266,7 +266,7 @@ export const LearningCard = () => {
             </div>
 
             <button
-                onClick={() => window.open(`https://www.google.com/search?q=${current.query}`, '_blank')}
+                onClick={() => window.open(current.url, '_blank')}
                 className="mt-3 text-orange-700 text-xs font-bold flex items-center gap-1 hover:gap-2 transition-all bg-white/50 w-fit px-3 py-1.5 rounded-full hover:bg-white"
             >
                 Read Chapter <ExternalLink size={12} />
