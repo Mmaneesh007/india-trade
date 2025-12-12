@@ -224,15 +224,51 @@ export const IPOWatch = () => {
 
 // 7. Quick Learning
 export const LearningCard = () => {
+    const topics = [
+        { title: 'Option Greeks', desc: 'Understanding Delta, Gamma, Theta is key to mastering F&O.', query: 'option greeks investopedia' },
+        { title: 'RSI Indicator', desc: 'Relative Strength Index helps identify overbought or oversold stocks.', query: 'RSI indicator trading' },
+        { title: 'P/E Ratio', desc: 'Price-to-Earnings ratio determines if a stock is overvalued.', query: 'PE ratio explained' },
+        { title: 'Candlestick Patterns', desc: 'Hammer, Doji, and Engulfing patterns signal market reversals.', query: 'candlestick patterns cheat sheet' },
+        { title: 'Support & Resistance', desc: 'Key levels where price tends to bounce or break through.', query: 'support and resistance trading' }
+    ];
+
+    const [index, setIndex] = React.useState(0);
+
+    const nextTopic = () => setIndex((prev) => (prev + 1) % topics.length);
+
+    React.useEffect(() => {
+        const interval = setInterval(nextTopic, 8000); // Auto rotate every 8s
+        return () => clearInterval(interval);
+    }, []);
+
+    const current = topics[index];
+
     return (
-        <div className="groww-card bg-orange-50 border-orange-100">
-            <h3 className="font-bold text-orange-900 mb-2 flex items-center gap-2">
-                <BookOpen size={18} className="text-orange-600" /> Learn & Grow
-            </h3>
-            <p className="text-sm text-orange-800 mb-4 leading-relaxed">
-                Understanding <strong>Option Greeks</strong> (Delta, Gamma) is key to mastering F&O trading.
-            </p>
-            <button className="text-orange-700 text-xs font-bold flex items-center gap-1 hover:gap-2 transition-all">
+        <div className="groww-card bg-orange-50 border-orange-100 flex flex-col justify-between relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-orange-100 rounded-bl-full -mr-8 -mt-8 opacity-50"></div>
+
+            <div>
+                <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-orange-900 flex items-center gap-2">
+                        <BookOpen size={18} className="text-orange-600" /> Learn & Grow
+                    </h3>
+                    <button onClick={nextTopic} className="text-orange-400 hover:text-orange-700 transition-colors p-1">
+                        <TrendingUp size={14} />
+                    </button>
+                </div>
+
+                <div className="min-h-[60px]">
+                    <h4 className="font-bold text-orange-800 text-sm mb-1">{current.title}</h4>
+                    <p className="text-xs text-orange-700 leading-relaxed">
+                        {current.desc}
+                    </p>
+                </div>
+            </div>
+
+            <button
+                onClick={() => window.open(`https://www.google.com/search?q=${current.query}`, '_blank')}
+                className="mt-3 text-orange-700 text-xs font-bold flex items-center gap-1 hover:gap-2 transition-all bg-white/50 w-fit px-3 py-1.5 rounded-full hover:bg-white"
+            >
                 Read Chapter <ExternalLink size={12} />
             </button>
         </div>
