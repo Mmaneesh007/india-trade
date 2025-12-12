@@ -1,6 +1,7 @@
 import React from 'react';
 import { BarChart2, PieChart, Activity, DollarSign, ArrowUp, ArrowDown, Minus, TrendingUp } from 'lucide-react';
 import StockChart from './StockChart';
+import api from '../api';
 import {
     SectorPerformance,
     GlobalMarkets,
@@ -26,11 +27,8 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
     React.useEffect(() => {
         const fetchStats = async () => {
             try {
-                // We need to import axios or pass it, but assuming standard fetch or axios is available in scope or we import it.
-                // Since this component doesn't have axios imported, let's use fetch which is native.
-                const res = await fetch('https://india-trade-backend.onrender.com/api/market/breadth');
-                const data = await res.json();
-                if (data.traded) setStats(data);
+                const res = await api.get('/api/market/breadth');
+                if (res.data.traded) setStats(res.data);
             } catch (e) {
                 console.error("Stats fetch failed", e);
             }

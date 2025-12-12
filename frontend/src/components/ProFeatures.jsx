@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowUp, ArrowDown, ExternalLink, BookOpen, Calendar, Globe, TrendingUp, BarChart3, Activity } from 'lucide-react';
+import api from '../api';
 
 // --- SUB-COMPONENTS ---
 
@@ -8,9 +9,8 @@ export const SectorPerformance = () => {
     const [sectors, setSectors] = React.useState([]);
 
     React.useEffect(() => {
-        fetch('https://india-trade-backend.onrender.com/api/market/sectors')
-            .then(res => res.json())
-            .then(data => setSectors(data))
+        api.get('/api/market/sectors')
+            .then(res => setSectors(res.data))
             .catch(e => console.error(e));
     }, []);
 
@@ -57,9 +57,8 @@ export const GlobalMarkets = () => {
     const [markets, setMarkets] = React.useState([]);
 
     React.useEffect(() => {
-        fetch('https://india-trade-backend.onrender.com/api/market/global')
-            .then(res => res.json())
-            .then(data => setMarkets(data))
+        api.get('/api/market/global')
+            .then(res => setMarkets(res.data))
             .catch(e => console.error(e));
     }, []);
 
