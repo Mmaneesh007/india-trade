@@ -259,7 +259,7 @@ export default function Dashboard() {
                         <button onClick={handleBuy} className="btn-primary flex-1 md:flex-none md:w-40 flex items-center justify-center gap-2">
                             <Plus size={18} /> BUY
                         </button>
-                        <button className="btn-secondary bg-groww-red hover:bg-red-600 flex-1 md:flex-none md:w-40 flex items-center justify-center gap-2">
+                        <button onClick={handleSell} className="btn-secondary bg-groww-red hover:bg-red-600 flex-1 md:flex-none md:w-40 flex items-center justify-center gap-2">
                             <Minus size={18} /> SELL
                         </button>
                     </div>
