@@ -28,6 +28,7 @@ export default function Dashboard() {
     // News Data
     const [news, setNews] = useState([]);
     const [loadingNews, setLoadingNews] = useState(true);
+    const [newsCategory, setNewsCategory] = useState('all');
     const [similarStocks, setSimilarStocks] = useState([]);
 
     const TOP_STOCKS = [
@@ -74,11 +75,17 @@ export default function Dashboard() {
         checkUser();
     }, []);
 
-    const fetchNews = async () => {
+    const fetchNews = async (category = newsCategory) => {
         setLoadingNews(true);
         try {
             // Using API client handles base URL automatically
-            const res = await api.get('/api/news');
+            // Add timestamp to prevent caching
+            const res = await api.get('/api/news', {
+                params: {
+                    category: category,
+                    t: Date.now()
+                }
+            });
             setNews(res.data);
         } catch (e) {
             console.error("Failed to fetch news", e);
@@ -87,6 +94,13 @@ export default function Dashboard() {
             setLoadingNews(false);
         }
     };
+
+    // Refetch news when category changes
+    useEffect(() => {
+        if (activeTab === 'news') {
+            fetchNews(newsCategory);
+        }
+    }, [newsCategory, activeTab]);
 
     const fetchPortfolio = async (userId) => {
         const { data, error } = await supabase
@@ -276,10 +290,12 @@ export default function Dashboard() {
                     <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-8 border-b border-gray-200 pb-4 gap-4">
                         <div className="flex items-center gap-4">
                             <h1 className="text-3xl font-bold text-gray-900 font-serif tracking-tight">
-                                Explore Markets News
+                                {newsCategory === 'all' ? 'Explore Markets News' :
+                                    newsCategory === 'stocks' ? 'Company News' :
+                                        newsCategory === 'economy' ? 'Economic Updates' : 'Live Markets'}
                             </h1>
                             <button
-                                onClick={fetchNews}
+                                onClick={() => fetchNews(newsCategory)}
                                 disabled={loadingNews}
                                 className="p-2 rounded-full hover:bg-gray-100 transition-all text-gray-500 hover:text-groww-primary active:scale-95 disabled:opacity-50"
                                 title="Refresh News"
@@ -289,10 +305,30 @@ export default function Dashboard() {
                         </div>
 
                         <div className="text-sm font-bold text-gray-500 flex gap-6 uppercase tracking-wider overflow-x-auto">
-                            <span className="text-black border-b-2 border-black pb-4 cursor-pointer whitespace-nowrap">All</span>
-                            <span className="hover:text-black cursor-pointer transition-colors whitespace-nowrap">Live Markets</span>
-                            <span className="hover:text-black cursor-pointer transition-colors whitespace-nowrap">Stocks & Bonds</span>
-                            <span className="hover:text-black cursor-pointer transition-colors whitespace-nowrap">Economy</span>
+                            <button
+                                onClick={() => setNewsCategory('all')}
+                                className={`pb-4 cursor-pointer whitespace-nowrap transition-colors ${newsCategory === 'all' ? 'text-black border-b-2 border-black' : 'hover:text-black border-b-2 border-transparent'}`}
+                            >
+                                All
+                            </button>
+                            <button
+                                onClick={() => setNewsCategory('live')}
+                                className={`pb-4 cursor-pointer whitespace-nowrap transition-colors ${newsCategory === 'live' ? 'text-black border-b-2 border-black' : 'hover:text-black border-b-2 border-transparent'}`}
+                            >
+                                Live Markets
+                            </button>
+                            <button
+                                onClick={() => setNewsCategory('stocks')}
+                                className={`pb-4 cursor-pointer whitespace-nowrap transition-colors ${newsCategory === 'stocks' ? 'text-black border-b-2 border-black' : 'hover:text-black border-b-2 border-transparent'}`}
+                            >
+                                Stocks & Bonds
+                            </button>
+                            <button
+                                onClick={() => setNewsCategory('economy')}
+                                className={`pb-4 cursor-pointer whitespace-nowrap transition-colors ${newsCategory === 'economy' ? 'text-black border-b-2 border-black' : 'hover:text-black border-b-2 border-transparent'}`}
+                            >
+                                Economy
+                            </button>
                         </div>
                     </div>
 
