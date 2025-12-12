@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
         // Try fetching real news with a short timeout
         // Note: Adding suppressErrors to avoid crashing on some Yahoo responses
         const results = await Promise.race([
-            yahooFinance.search(query, { newsCount: 5 }),
+            yahooFinance.search(query, { newsCount: 10 }),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
         ]);
 

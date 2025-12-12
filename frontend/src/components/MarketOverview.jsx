@@ -116,8 +116,8 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
                         <TrendingUp size={16} /> Latest News
                     </h4>
                     <div className="space-y-3 overflow-y-auto max-h-[220px] custom-scrollbar">
-                        {news && news.length > 0 ? news.slice(0, 5).map((item, i) => (
-                            <NewsItem key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} />
+                        {news && news.length > 0 ? news.map((item, i) => (
+                            <NewsItem key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} thumbnail={item.thumbnail} />
                         )) : (
                             <div className="text-gray-400 text-sm">Loading market news...</div>
                         )}
@@ -137,14 +137,26 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
     );
 }
 
-function NewsItem({ title, link, publisher, time }) {
+function NewsItem({ title, link, publisher, time, thumbnail }) {
     const date = new Date(time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const imgUrl = thumbnail?.resolutions?.[0]?.url;
+
     return (
-        <a href={link} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 pb-3 border-b border-gray-50 last:border-0 last:pb-0 hover:bg-gray-50 transition-colors rounded p-1">
-            <div className="min-w-[4px] h-full bg-groww-primary/20 rounded-full mr-1"></div>
-            <div>
-                <div className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug hover:text-groww-primary transition-colors">{title}</div>
-                <div className="text-[10px] text-gray-500 mt-1">{publisher} • {date}</div>
+        <a href={link} target="_blank" rel="noopener noreferrer" className="flex gap-4 p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-all roundedgroup">
+            {imgUrl && (
+                <div className="w-20 h-14 shrink-0 rounded-lg overflow-hidden bg-gray-200">
+                    <img src={imgUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                </div>
+            )}
+            <div className="flex flex-col justify-between">
+                <div className="text-sm font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-groww-primary transition-colors">
+                    {title}
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-gray-500 mt-1">
+                    <span className="font-medium text-gray-600">{publisher}</span>
+                    <span>•</span>
+                    <span>{date}</span>
+                </div>
             </div>
         </a>
     )
