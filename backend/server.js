@@ -9,6 +9,7 @@ import newsRouter from './routes/news.js';
 import marketRouter from './routes/market.js';
 import transactionsRouter from './routes/transactions.js';
 import watchlistRouter from './routes/watchlist.js';
+import ipoRouter from './routes/ipo.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -28,6 +29,7 @@ app.use('/api/news', newsRouter);
 app.use('/api/market', marketRouter);
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/watchlist', watchlistRouter);
+app.use('/api/ipo', ipoRouter);
 
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => console.log(`Backend listening on ${PORT}`));

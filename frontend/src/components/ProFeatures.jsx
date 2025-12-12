@@ -192,7 +192,43 @@ export const MarketHeatmap = () => {
 };
 
 // 6. IPO Watch
+// 6. IPO Watch - Dynamic with real data
 export const IPOWatch = () => {
+    const [ipos, setIpos] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        api.get('/api/ipo/list')
+            .then(res => {
+                // Get top 2 IPOs (prioritize open, then listed)
+                const sorted = res.data.sort((a, b) => {
+                    const priority = { open: 0, upcoming: 1, listed: 2, closed: 3 };
+                    return priority[a.status] - priority[b.status];
+                });
+                setIpos(sorted.slice(0, 2));
+            })
+            .catch(e => console.error(e))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleViewIPO = (ipoId) => {
+        window.location.href = `/ipo/${ipoId}`;
+    };
+
+    if (loading) {
+        return (
+            <div className="groww-card bg-indigo-50 border-indigo-100 animate-pulse">
+                <h3 className="font-bold text-indigo-900 flex items-center gap-2 mb-4">
+                    <TrendingUp size={18} className="text-indigo-600" /> IPO Watch
+                </h3>
+                <div className="space-y-3">
+                    <div className="h-20 bg-white rounded-lg"></div>
+                    <div className="h-16 bg-white rounded-lg opacity-50"></div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="groww-card bg-indigo-50 border-indigo-100">
             <div className="flex justify-between items-start mb-4">
@@ -202,21 +238,39 @@ export const IPOWatch = () => {
                 <span className="bg-indigo-200 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Live</span>
             </div>
 
-            <div className="bg-white p-3 rounded-lg border border-indigo-100 mb-3 shadow-sm">
-                <div className="flex justify-between mb-1">
-                    <span className="font-bold text-gray-800">Tata Tech</span>
-                    <span className="text-green-600 font-bold">+160%</span>
+            {ipos.map((ipo, idx) => (
+                <div
+                    key={ipo.id}
+                    className={`bg-white p-3 rounded-lg border border-indigo-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow ${idx > 0 ? 'mt-3' : ''} ${ipo.status === 'closed' ? 'opacity-60' : ''}`}
+                    onClick={() => handleViewIPO(ipo.id)}
+                >
+                    <div className="flex justify-between mb-1">
+                        <span className="font-bold text-gray-800">{ipo.name.split(' ')[0]}</span>
+                        <span className={`font-bold ${ipo.listingGain ? (ipo.listingGain.includes('+') ? 'text-green-600' : 'text-red-500') : ipo.status === 'open' ? 'text-blue-600' : 'text-gray-400'}`}>
+                            {ipo.listingGain || (ipo.status === 'open' ? 'Open' : ipo.status === 'upcoming' ? 'Soon' : 'Closed')}
+                        </span>
+                    </div>
+                    <div className="text-xs text-gray-500 mb-2">
+                        Sub: {ipo.subscriptionTimes}x • GMP: ₹{ipo.gmp}
+                    </div>
+                    {ipo.status === 'open' && (
+                        <button
+                            className="w-full bg-indigo-600 text-white text-xs font-bold py-1.5 rounded hover:bg-indigo-700"
+                            onClick={(e) => { e.stopPropagation(); handleViewIPO(ipo.id); }}
+                        >
+                            Apply Now
+                        </button>
+                    )}
+                    {ipo.status === 'listed' && (
+                        <button
+                            className="w-full bg-gray-100 text-gray-700 text-xs font-bold py-1.5 rounded hover:bg-gray-200"
+                            onClick={(e) => { e.stopPropagation(); handleViewIPO(ipo.id); }}
+                        >
+                            View Details
+                        </button>
+                    )}
                 </div>
-                <div className="text-xs text-gray-500 mb-2">Sub: 50.4x • GMP: ₹450</div>
-                <button className="w-full bg-indigo-600 text-white text-xs font-bold py-1.5 rounded hover:bg-indigo-700">Apply Now</button>
-            </div>
-            <div className="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm opacity-60">
-                <div className="flex justify-between mb-1">
-                    <span className="font-bold text-gray-800">Gandhar Oil</span>
-                    <span className="text-gray-400 font-bold">Closed</span>
-                </div>
-                <div className="text-xs text-gray-500">Allotment Out</div>
-            </div>
+            ))}
         </div>
     );
 };

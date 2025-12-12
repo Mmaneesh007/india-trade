@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import IPODetail from './pages/IPODetail';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/ipo/:ipoId" element={<IPODetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </SocketProvider>
