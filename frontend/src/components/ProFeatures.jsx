@@ -5,14 +5,26 @@ import { ArrowUp, ArrowDown, ExternalLink, BookOpen, Calendar, Globe, TrendingUp
 
 // 1. Sector Performance
 export const SectorPerformance = () => {
-    // We will wire this to API later
-    const sectors = [
-        { name: 'NIFTY BANK', value: '+1.24%', isPos: true },
-        { name: 'NIFTY IT', value: '-0.45%', isPos: false },
-        { name: 'NIFTY AUTO', value: '+0.88%', isPos: true },
-        { name: 'NIFTY PHARMA', value: '+0.12%', isPos: true },
-        { name: 'NIFTY METAL', value: '-1.10%', isPos: false },
-    ];
+    const [sectors, setSectors] = React.useState([]);
+
+    React.useEffect(() => {
+        fetch('https://india-trade-backend.onrender.com/api/market/sectors')
+            .then(res => res.json())
+            .then(data => setSectors(data))
+            .catch(e => console.error(e));
+    }, []);
+
+    if (sectors.length === 0) return (
+        <div className="groww-card animate-pulse">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <BarChart3 size={18} className="text-groww-primary" /> Sector Performance
+            </h3>
+            <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => <div key={i} className="h-6 bg-gray-100 rounded"></div>)}
+            </div>
+        </div>
+    );
+
     return (
         <div className="groww-card">
             <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -21,12 +33,12 @@ export const SectorPerformance = () => {
             <div className="space-y-3">
                 {sectors.map((s, i) => (
                     <div key={i} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 font-medium">{s.name}</span>
-                        <div className="flex items-center gap-3">
+                        <span className="text-gray-600 font-medium truncate w-[40%]">{s.name}</span>
+                        <div className="flex items-center gap-3 w-[60%] justify-end">
                             <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className={`h-full rounded-full ${s.isPos ? 'bg-green-500' : 'bg-red-500'}`}
-                                    style={{ width: `${Math.random() * 80 + 20}%` }}
+                                    style={{ width: `${Math.abs(parseFloat(s.value)) * 20 + 20}%` }}
                                 ></div>
                             </div>
                             <span className={`w-12 text-right font-bold ${s.isPos ? 'text-green-600' : 'text-red-500'}`}>
@@ -42,13 +54,26 @@ export const SectorPerformance = () => {
 
 // 2. Global Markets
 export const GlobalMarkets = () => {
-    const markets = [
-        { name: 'S&P 500', value: '4,780.20', change: '+0.5%', isPos: true },
-        { name: 'NASDAQ', value: '15,600.10', change: '+0.8%', isPos: true },
-        { name: 'Dow Jones', value: '38,100.40', change: '-0.2%', isPos: false },
-        { name: 'Nikkei 225', value: '36,500.00', change: '+1.1%', isPos: true },
-        { name: 'FTSE 100', value: '7,600.80', change: '-0.1%', isPos: false },
-    ];
+    const [markets, setMarkets] = React.useState([]);
+
+    React.useEffect(() => {
+        fetch('https://india-trade-backend.onrender.com/api/market/global')
+            .then(res => res.json())
+            .then(data => setMarkets(data))
+            .catch(e => console.error(e));
+    }, []);
+
+    if (markets.length === 0) return (
+        <div className="groww-card animate-pulse">
+            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Globe size={18} className="text-blue-500" /> Global Indices
+            </h3>
+            <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => <div key={i} className="h-8 bg-gray-100 rounded"></div>)}
+            </div>
+        </div>
+    );
+
     return (
         <div className="groww-card">
             <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">

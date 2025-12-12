@@ -65,4 +65,63 @@ router.get('/breadth', async (req, res) => {
     }
 });
 
+// ... existing breadth code ...
+
+router.get('/sectors', async (req, res) => {
+    try {
+        const symbols = ['^NSEBANK', '^CNXIT', '^CNXAUTO', '^CNXPHARMA', '^CNXMETAL'];
+        const results = await Promise.all(
+            symbols.map(sym => yahooFinance.quote(sym).catch(e => null))
+        );
+
+        const data = results.map(q => {
+            if (!q) return { name: 'Unknown', value: '-', isPos: false };
+            const change = q.regularMarketChangePercent || 0;
+            return {
+                name: q.shortName || q.symbol,
+                value: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
+                isPos: change >= 0
+            };
+        });
+        res.json(data);
+    } catch (e) {
+        console.error("Sector fetch failed", e);
+        res.status(500).json([]);
+    }
+});
+
+router.get('/global', async (req, res) => {
+    try {
+        const symbols = [
+            { s: '^GSPC', n: 'S&P 500' },
+            { s: '^IXIC', n: 'NASDAQ' },
+            { s: '^DJI', n: 'Dow Jones' }, // Dow might fail on some free tiers, let's see
+            { s: '^N225', n: 'Nikkei 225' },
+            { s: '^FTSE', n: 'FTSE 100' }
+        ];
+
+        const results = await Promise.all(
+            symbols.map(obj => yahooFinance.quote(obj.s).catch(e => null))
+        );
+
+        const data = results.map((q, i) => {
+            const name = symbols[i].n;
+            if (!q) return { name, value: '-', change: '-', isPos: false };
+
+            const change = q.regularMarketChangePercent || 0;
+            return {
+                name,
+                value: q.regularMarketPrice?.toLocaleString('en-US', { maximumFractionDigits: 2 }),
+                change: `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`,
+                isPos: change >= 0
+            }
+        });
+
+        res.json(data);
+    } catch (e) {
+        console.error("Global fetch failed", e);
+        res.status(500).json([]);
+    }
+});
+
 export default router;
