@@ -22,9 +22,9 @@ export default function LandingPage() {
                         <a href="#" className="hover:text-groww-primary">Learn</a>
                     </div>
                     <div className="flex gap-4">
-                        <button className="text-gray-900 font-medium hover:text-groww-primary">Login</button>
+                        <button onClick={() => navigate('/login')} className="text-gray-900 font-medium hover:text-groww-primary">Login</button>
                         <button
-                            onClick={() => navigate('/dashboard')}
+                            onClick={() => navigate('/signup')}
                             className="bg-groww-primary hover:bg-green-600 text-white px-5 py-2 rounded-lg font-medium transition-colors"
                         >
                             Get Started
@@ -47,10 +47,10 @@ export default function LandingPage() {
                     </p>
                     <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
                         <button
-                            onClick={() => navigate('/dashboard')}
+                            onClick={() => navigate('/signup')}
                             className="bg-groww-primary hover:bg-green-600 text-white text-lg px-10 py-4 rounded-xl font-bold shadow-lg shadow-green-200 transition-all transform hover:scale-105 flex items-center gap-2"
                         >
-                            Explore Dashboard <ArrowRight size={20} />
+                            Start Investing <ArrowRight size={20} />
                         </button>
                         <button className="text-gray-600 font-medium px-8 py-4 border border-gray-200 rounded-xl hover:bg-gray-50">
                             Download App
