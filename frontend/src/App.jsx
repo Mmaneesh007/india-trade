@@ -6,6 +6,7 @@ import MarketOverview from './components/MarketOverview';
 import { useSocket, SocketProvider } from './context/SocketContext';
 import { Search, Plus, Minus, Briefcase } from 'lucide-react';
 import axios from 'axios';
+import { MOCK_NIFTY, MOCK_RELIANCE } from './mockData';
 
 function Dashboard() {
   const { socket, isConnected } = useSocket();
