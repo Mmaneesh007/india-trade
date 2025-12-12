@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Search, TrendingUp, Bell, ShoppingCart, User } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Search, TrendingUp, Bell, ShoppingCart, User, LogOut, Settings, ChevronDown, X, Wallet, History, Star } from 'lucide-react';
 import api from '../api';
+import { supabase } from '../supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 export default function Header({ activeTab, setActiveTab, setSymbol }) {
+    const navigate = useNavigate();
     const [indices, setIndices] = useState({
         nifty: { price: 0, change: 0, changePercent: 0 },
         sensex: { price: 0, change: 0, changePercent: 0 }
@@ -12,6 +15,37 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [showResults, setShowResults] = useState(false);
+
+    // Dropdown States
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [showQuickActions, setShowQuickActions] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [user, setUser] = useState(null);
+
+    // Refs for click outside detection
+    const notifRef = useRef(null);
+    const quickRef = useRef(null);
+    const userRef = useRef(null);
+
+    // Check user session
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        checkUser();
+    }, []);
+
+    // Close dropdowns on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifications(false);
+            if (quickRef.current && !quickRef.current.contains(e.target)) setShowQuickActions(false);
+            if (userRef.current && !userRef.current.contains(e.target)) setShowUserMenu(false);
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         const fetchIndices = async () => {
@@ -61,6 +95,18 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
         setQuery('');
         setShowResults(false);
     };
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        navigate('/login');
+    };
+
+    // Mock notifications
+    const notifications = [
+        { id: 1, title: 'RELIANCE crossed ₹2,500', time: '5 min ago', type: 'alert' },
+        { id: 2, title: 'TCS dividend announced', time: '1 hour ago', type: 'news' },
+        { id: 3, title: 'Your buy order executed', time: '2 hours ago', type: 'order' },
+    ];
 
     return (
         <header className="bg-white/80 backdrop-blur-md border-b border-white/40 sticky top-0 z-50 transition-all">
@@ -147,11 +193,135 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                     )}
                 </div>
 
-                <div className="flex items-center gap-5 text-gray-500">
-                    <Bell size={22} className="cursor-pointer hover:text-black" />
-                    <ShoppingCart size={22} className="cursor-pointer hover:text-black" />
-                    <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 border border-gray-200 cursor-pointer">
-                        <User size={20} />
+                <div className="flex items-center gap-4 text-gray-500">
+                    {/* Notifications Bell */}
+                    <div className="relative" ref={notifRef}>
+                        <button
+                            onClick={() => { setShowNotifications(!showNotifications); setShowQuickActions(false); setShowUserMenu(false); }}
+                            className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            <Bell size={22} className="cursor-pointer hover:text-black" />
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+
+                        {showNotifications && (
+                            <div className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50">
+                                <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                                    <h3 className="font-bold text-gray-900">Notifications</h3>
+                                    <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600">
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                                <div className="max-h-64 overflow-y-auto">
+                                    {notifications.map(n => (
+                                        <div key={n.id} className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
+                                            <div className="font-medium text-gray-900 text-sm">{n.title}</div>
+                                            <div className="text-xs text-gray-400 mt-1">{n.time}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="px-4 py-2 border-t border-gray-100">
+                                    <button className="text-groww-primary text-sm font-medium hover:underline w-full text-center">
+                                        View All Notifications
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Quick Actions (Cart) */}
+                    <div className="relative" ref={quickRef}>
+                        <button
+                            onClick={() => { setShowQuickActions(!showQuickActions); setShowNotifications(false); setShowUserMenu(false); }}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            <ShoppingCart size={22} className="cursor-pointer hover:text-black" />
+                        </button>
+
+                        {showQuickActions && (
+                            <div className="absolute right-0 top-12 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50">
+                                <div className="px-4 py-2 border-b border-gray-100">
+                                    <h3 className="font-bold text-gray-900 text-sm">Quick Actions</h3>
+                                </div>
+                                <button
+                                    onClick={() => { setActiveTab('watchlist'); setShowQuickActions(false); }}
+                                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left"
+                                >
+                                    <Star size={18} className="text-yellow-500" />
+                                    <span className="text-sm text-gray-700">My Watchlist</span>
+                                </button>
+                                <button
+                                    onClick={() => { setActiveTab('portfolio'); setShowQuickActions(false); }}
+                                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left"
+                                >
+                                    <History size={18} className="text-blue-500" />
+                                    <span className="text-sm text-gray-700">Order History</span>
+                                </button>
+                                <button
+                                    onClick={() => { alert('Add Funds feature coming soon!'); setShowQuickActions(false); }}
+                                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left"
+                                >
+                                    <Wallet size={18} className="text-green-500" />
+                                    <span className="text-sm text-gray-700">Add Funds</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* User Profile */}
+                    <div className="relative" ref={userRef}>
+                        <button
+                            onClick={() => { setShowUserMenu(!showUserMenu); setShowNotifications(false); setShowQuickActions(false); }}
+                            className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 border border-gray-200 cursor-pointer hover:border-groww-primary transition-colors"
+                        >
+                            <User size={20} />
+                        </button>
+
+                        {showUserMenu && (
+                            <div className="absolute right-0 top-12 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50">
+                                {user ? (
+                                    <>
+                                        <div className="px-4 py-3 border-b border-gray-100">
+                                            <div className="font-bold text-gray-900">{user.email?.split('@')[0]}</div>
+                                            <div className="text-xs text-gray-400 truncate">{user.email}</div>
+                                        </div>
+                                        <button
+                                            onClick={() => { setActiveTab('portfolio'); setShowUserMenu(false); }}
+                                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left"
+                                        >
+                                            <Wallet size={18} className="text-gray-400" />
+                                            <span className="text-sm text-gray-700">My Portfolio</span>
+                                        </button>
+                                        <button
+                                            onClick={() => { alert('Settings coming soon!'); setShowUserMenu(false); }}
+                                            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left"
+                                        >
+                                            <Settings size={18} className="text-gray-400" />
+                                            <span className="text-sm text-gray-700">Settings</span>
+                                        </button>
+                                        <div className="border-t border-gray-100 mt-1">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="w-full px-4 py-3 flex items-center gap-3 hover:bg-red-50 text-left text-red-600"
+                                            >
+                                                <LogOut size={18} />
+                                                <span className="text-sm font-medium">Logout</span>
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="px-4 py-4">
+                                        <p className="text-sm text-gray-600 mb-3">Sign in to access all features</p>
+                                        <button
+                                            onClick={() => navigate('/login')}
+                                            className="w-full bg-groww-primary text-white py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
+                                        >
+                                            Login / Sign Up
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
