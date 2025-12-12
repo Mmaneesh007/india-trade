@@ -8,17 +8,49 @@ import { Search, Plus, Minus, Briefcase } from 'lucide-react';
 import axios from 'axios';
 import { MOCK_NIFTY, MOCK_RELIANCE } from '../mockData';
 
+import { supabase } from '../supabaseClient';
+import { useNavigate } from 'react-router-dom';
+
 export default function Dashboard() {
     const { socket, isConnected } = useSocket();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('stocks'); // stocks | mutual_funds
     const [symbol, setSymbol] = useState('RELIANCE');
     const [priceData, setPriceData] = useState(null);
     const [candles, setCandles] = useState(MOCK_RELIANCE.candles);
-    const [portfolio, setPortfolio] = useState({ shares: 0, invested: 0 }); // Mock portfolio
+    const [portfolio, setPortfolio] = useState({ shares: 0, invested: 0 });
+    const [user, setUser] = useState(null);
 
     // Nifty Data for Overview
     const [niftyData, setNiftyData] = useState(null);
     const [niftyCandles, setNiftyCandles] = useState([]);
+
+    // Check Auth & Load Portfolio
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                navigate('/login');
+                return;
+            }
+            setUser(user);
+            fetchPortfolio(user.id);
+        };
+        checkUser();
+    }, []);
+
+    const fetchPortfolio = async (userId) => {
+        const { data, error } = await supabase
+            .from('portfolio')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('symbol', symbol)
+            .single();
+
+        if (data) {
+            setPortfolio({ shares: data.quantity, invested: parseFloat(data.average_price) * data.quantity });
+        }
+    };
 
     // Initial fetch
     useEffect(() => {
@@ -91,14 +123,32 @@ export default function Dashboard() {
         }
     }
 
-    const handleBuy = () => {
-        if (!priceData) return;
-        const currentQty = portfolio.shares;
-        setPortfolio({
-            shares: currentQty + 1,
-            invested: portfolio.invested + priceData.price
-        });
-        alert(`Bought 1 Qty of ${symbol} at ₹${priceData.price}`);
+    const handleBuy = async () => {
+        if (!priceData || !user) return;
+
+        const newQty = portfolio.shares + 1;
+        const newInvested = portfolio.invested + priceData.price;
+        const newAvgPrice = newInvested / newQty;
+
+        // Optimistic Update
+        setPortfolio({ shares: newQty, invested: newInvested });
+
+        // Save to Supabase
+        const { error } = await supabase
+            .from('portfolio')
+            .upsert({
+                user_id: user.id,
+                symbol: symbol,
+                quantity: newQty,
+                average_price: newAvgPrice
+            }, { onConflict: 'user_id, symbol' });
+
+        if (error) {
+            console.error('Buy failed:', error);
+            alert("Trade failed to save!");
+        } else {
+            alert(`Bought 1 Qty of ${symbol} at ₹${priceData.price}`);
+        }
     };
 
     return (
@@ -198,7 +248,7 @@ export default function Dashboard() {
                                             </span>
                                         </div>
                                         <div className="text-xs text-center text-green-600 font-medium bg-green-50 py-1 rounded">
-                                            Mock Portfolio Active
+                                            Real Portfolio Active
                                         </div>
                                     </div>
                                 ) : (
