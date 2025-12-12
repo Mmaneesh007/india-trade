@@ -185,6 +185,21 @@ export default function Dashboard() {
         }
     }
 
+    const logTransaction = async (type, qty, price) => {
+        if (!user) return;
+        const { error } = await supabase
+            .from('transactions')
+            .insert([{
+                user_id: user.id,
+                symbol: symbol,
+                type: type, // 'BUY' or 'SELL'
+                quantity: qty,
+                price: price,
+                timestamp: new Date().toISOString()
+            }]);
+        if (error) console.error('Transaction log failed:', error);
+    };
+
     const handleBuy = async () => {
         if (!priceData || !user) return;
 
@@ -209,8 +224,54 @@ export default function Dashboard() {
             console.error('Buy failed:', error);
             alert("Trade failed to save!");
         } else {
-            alert(`Bought 1 Qty of ${symbol} at ₹${priceData.price}`);
+            logTransaction('BUY', 1, priceData.price);
+            alert(`Bought 1 Qty of ${symbol} at ₹${priceData.price.toFixed(2)}`);
         }
+    };
+
+    const handleSell = async () => {
+        if (!priceData || !user) return;
+        if (portfolio.shares <= 0) {
+            alert("You don't own any shares to sell!");
+            return;
+        }
+
+        const newQty = portfolio.shares - 1;
+        // Invested amount decreases proportionally
+        const avgPrice = portfolio.invested / portfolio.shares;
+        const newInvested = avgPrice * newQty;
+
+        // Optimistic Update
+        setPortfolio({ shares: newQty, invested: newInvested });
+
+        if (newQty > 0) {
+            // Update Portfolio
+            const { error } = await supabase
+                .from('portfolio')
+                .upsert({
+                    user_id: user.id,
+                    symbol: symbol,
+                    quantity: newQty,
+                    average_price: avgPrice // Avg price doesn't change on sell
+                }, { onConflict: 'user_id, symbol' });
+
+            if (error) console.error('Sell update failed', error);
+        } else {
+            // Delete if 0
+            const { error } = await supabase
+                .from('portfolio')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('symbol', symbol);
+
+            if (error) console.error('Sell delete failed', error);
+        }
+
+        logTransaction('SELL', 1, priceData.price);
+
+        // Calculate P&L for this specific share
+        const pnl = priceData.price - avgPrice;
+        alert(`Sold 1 Qty of ${symbol} at ₹${priceData.price.toFixed(2)}. ${pnl >= 0 ? 'Profit' : 'Loss'}: ₹${Math.abs(pnl).toFixed(2)}`);
     };
 
     return (
