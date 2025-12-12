@@ -14,16 +14,16 @@ export default function StockChart({ data, colors }) {
         const chart = createChart(chartContainerRef.current, {
             layout: {
                 background: { type: ColorType.Solid, color: 'transparent' },
-                textColor: '#94a3b8',
+                textColor: '#374151', // Gray-700
             },
             grid: {
-                vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-                horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+                vertLines: { color: 'rgba(0, 0, 0, 0.05)' },
+                horzLines: { color: 'rgba(0, 0, 0, 0.05)' },
             },
             width: chartContainerRef.current.clientWidth,
             height: 400,
             timeScale: {
-                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderColor: 'rgba(0, 0, 0, 0.1)',
                 timeVisible: true,
             },
         });
@@ -40,6 +40,8 @@ export default function StockChart({ data, colors }) {
 
         if (data && data.length > 0) {
             candleSeries.setData(data);
+        } else {
+            // Optional: Add a "No Data" marker or just leave grid
         }
 
         const volumeSeries = chart.addHistogramSeries({

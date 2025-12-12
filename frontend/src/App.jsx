@@ -57,9 +57,17 @@ function Dashboard() {
         axios.get(`/api/quotes/candles/${sym}`)
       ]);
       setPriceData(snapRes.data);
-      setCandles(candleRes.data.candles || []);
+      if (candleRes.data.candles && candleRes.data.candles.length > 0) {
+        setCandles(candleRes.data.candles);
+      } else {
+        // Fallback if API returns empty candles (common on free Yahoo API)
+        console.warn("Using Mock Candles for Stock");
+        setCandles(MOCK_RELIANCE.candles);
+      }
     } catch (e) {
-      console.error("Failed to fetch data", e);
+      console.error("Failed to fetch data, using mock", e);
+      setPriceData(MOCK_RELIANCE);
+      setCandles(MOCK_RELIANCE.candles);
     }
   };
 
@@ -70,8 +78,17 @@ function Dashboard() {
         axios.get(`/api/quotes/candles/^NSEI`)
       ]);
       setNiftyData(snapRes.data);
-      setNiftyCandles(candleRes.data.candles || []);
-    } catch (e) { console.error("Nifty fetch failed", e); }
+      if (candleRes.data.candles && candleRes.data.candles.length > 0) {
+        setNiftyCandles(candleRes.data.candles);
+      } else {
+        console.warn("Using Mock Candles for Nifty");
+        setNiftyCandles(MOCK_NIFTY.candles);
+      }
+    } catch (e) {
+      console.error("Nifty fetch failed, using mock", e);
+      setNiftyData(MOCK_NIFTY);
+      setNiftyCandles(MOCK_NIFTY.candles);
+    }
   }
 
   const handleBuy = () => {
