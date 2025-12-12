@@ -328,7 +328,20 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             </a>
-                        ))}
+                        )) : (
+                            // Skeleton Loading State for News
+                            [1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                                <div key={i} className="animate-pulse flex flex-col h-full bg-transparent">
+                                    <div className="h-48 bg-gray-200 w-full mb-4 rounded-sm"></div>
+                                    <div className="flex-1 flex flex-col p-1">
+                                        <div className="h-3 bg-gray-200 w-24 mb-3 rounded"></div>
+                                        <div className="h-5 bg-gray-200 w-full mb-2 rounded"></div>
+                                        <div className="h-5 bg-gray-200 w-3/4 mb-4 rounded"></div>
+                                        <div className="mt-auto h-3 bg-gray-200 w-32 rounded"></div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </main>
             )}
