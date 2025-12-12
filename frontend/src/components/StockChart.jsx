@@ -68,10 +68,7 @@ export default function StockChart({ data = [] }) {
                 ref={chartContainerRef}
                 className="w-full h-full bg-white rounded-lg overflow-hidden border border-gray-100"
             />
-            {/* Debug Overlay: To confirm data is arriving */}
-            <div className="absolute top-2 left-2 bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded z-20 pointer-events-none opacity-50">
-                Debug: {data ? data.length : 0} candles
-            </div>
+
         </div>
     );
 }

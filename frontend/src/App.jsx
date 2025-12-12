@@ -12,7 +12,7 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState('stocks'); // stocks | mutual_funds
   const [symbol, setSymbol] = useState('RELIANCE');
   const [priceData, setPriceData] = useState(null);
-  const [candles, setCandles] = useState([]);
+  const [candles, setCandles] = useState(MOCK_RELIANCE.candles); // Start with data immediately
   const [portfolio, setPortfolio] = useState({ shares: 0, invested: 0 }); // Mock portfolio
 
   // Nifty Data for Overview
