@@ -16,8 +16,12 @@ body {
 }
 
 /* Utilities */
+.glass-effect {
+  @apply bg-white/70 backdrop-blur-md border border-white/50 shadow-sm transition-all hover:shadow-md;
+}
+
 .groww-card {
-  @apply bg-groww-card rounded-xl border border-groww-border shadow-sm p-6;
+  @apply glass-effect rounded-2xl p-6;
 }
 
 .btn-primary {

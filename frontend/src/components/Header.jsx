@@ -63,37 +63,37 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
     };
 
     return (
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-            <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-8">
+        <header className="bg-white/80 backdrop-blur-md border-b border-white/40 sticky top-0 z-50 transition-all">
+            <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-8">
 
                 {/* Logo */}
                 <div className="flex items-center gap-2 cursor-pointer min-w-fit" onClick={() => setActiveTab('stocks')}>
-                    <div className="w-10 h-10 bg-groww-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-groww-primary/20">
-                        <TrendingUp size={24} strokeWidth={2.5} />
+                    <div className="w-8 h-8 bg-groww-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-groww-primary/20 hover:scale-105 transition-transform">
+                        <TrendingUp size={20} strokeWidth={2.5} />
                     </div>
-                    <span className="font-extrabold text-2xl tracking-tight text-gray-900">India<span className="text-groww-primary">Trade</span></span>
+                    <span className="font-bold text-xl tracking-tight text-gray-900">India<span className="text-groww-primary">Trade</span></span>
                 </div>
 
-                {/* Navigation Tabs (Center-Left) */}
-                <nav className="hidden md:flex items-center gap-8 font-medium text-gray-500">
+                {/* Minimal Tabs */}
+                <nav className="hidden md:flex items-center gap-1 bg-gray-100/50 p-1 rounded-full border border-gray-200/50">
                     <button
                         onClick={() => setActiveTab('stocks')}
-                        className={`text-base transition-colors py-2 border-b-2 ${activeTab === 'stocks' ? 'text-groww-primary border-groww-primary font-bold' : 'border-transparent hover:text-gray-900'}`}
+                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'stocks' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         Stocks
                     </button>
                     <button
                         onClick={() => setActiveTab('mutual_funds')}
-                        className={`text-base transition-colors py-2 border-b-2 ${activeTab === 'mutual_funds' ? 'text-groww-primary border-groww-primary font-bold' : 'border-transparent hover:text-gray-900'}`}
+                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'mutual_funds' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         Mutual Funds
                     </button>
-                    <div className="h-6 w-[1px] bg-gray-200 mx-2"></div>
-                    <div className="flex gap-6 text-sm">
-                        <IndexTicker name="NIFTY" data={indices.nifty} />
-                        <IndexTicker name="SENSEX" data={indices.sensex} />
-                    </div>
                 </nav>
+
+                <div className="hidden lg:flex gap-6 text-xs border-l border-gray-200 pl-6 h-8 items-center">
+                    <IndexTicker name="NIFTY" data={indices.nifty} />
+                    <IndexTicker name="SENSEX" data={indices.sensex} />
+                </div>
 
                 {/* Search & Profile (Right) */}
                 <div className="flex-1 max-w-md hidden lg:block relative">
