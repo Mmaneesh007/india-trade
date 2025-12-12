@@ -79,9 +79,9 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
                 </div>
             </div>
 
-            {/* SECTION 2: DENSITY ROW (Stats + FII/DII + Heatmap) */}
+            {/* SECTION 2: DENSITY ROW ... */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                {/* Market Stats Strip (Vertical now for better fit or Keep Horizontal block) */}
+                {/* Market Stats Strip */}
                 <div className="groww-card flex flex-col justify-between">
                     <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                         <Activity size={18} className="text-blue-500" /> Market Breadth
@@ -110,26 +110,38 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
 
                 <MarketHeatmap />
 
-                {/* TOP NEWS (Replaced old static events) */}
-                <div className="groww-card">
-                    <h4 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                        <TrendingUp size={16} /> Latest News
-                    </h4>
-                    <div className="space-y-0 divide-y divide-gray-100 overflow-y-auto max-h-[600px] custom-scrollbar pr-2">
-                        {news && news.length > 0 ? news.map((item, i) => (
-                            <NewsItem key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} thumbnail={item.thumbnail} />
-                        )) : (
-                            <div className="text-gray-400 text-sm">Loading market news...</div>
-                        )}
-                    </div>
+                {/* MOVED NEWS OUT OF HERE, REPLACING WITH MARKET MOVERS TO FILL GAP */}
+                <MarketMovers />
+            </div>
+
+            {/* SECTION 3: FULL WIDTH NEWS GRID (Investopedia Style) */}
+            <div className="mt-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 font-serif border-l-4 border-groww-primary pl-3">
+                    <TrendingUp size={24} className="text-groww-primary" /> Explore Markets News
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {news && news.length > 0 ? news.map((item, i) => (
+                        <NewsCard key={i} title={item.title} link={item.link} publisher={item.publisher} time={item.providerPublishTime} thumbnail={item.thumbnail} />
+                    )) : (
+                        // Skeleton Loading State
+                        [1, 2, 3, 4].map(i => (
+                            <div key={i} className="bg-white rounded-lg border border-gray-100 overflow-hidden animate-pulse h-[300px]">
+                                <div className="h-40 bg-gray-200 w-full"></div>
+                                <div className="p-4 space-y-3">
+                                    <div className="h-4 bg-gray-200 w-3/4 rounded"></div>
+                                    <div className="h-4 bg-gray-200 w-1/2 rounded"></div>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
-            {/* SECTION 3: BOTTOM ROW (IPO, Events, Learn, Movers) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            {/* SECTION 4: BOTTOM ROW (IPO, Events, Learn) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <IPOWatch />
                 <EventsCalendar />
-                <MarketMovers />
                 <LearningCard />
             </div>
 
@@ -137,40 +149,37 @@ export default function MarketOverview({ niftyData, niftyCandles, news }) {
     );
 }
 
-function NewsItem({ title, link, publisher, time, thumbnail }) {
+function NewsCard({ title, link, publisher, time, thumbnail }) {
     const date = new Date(time * 1000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     const imgUrl = thumbnail?.resolutions?.[0]?.url;
 
     return (
-        <a href={link} target="_blank" rel="noopener noreferrer" className="group flex gap-5 py-5 border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-all px-2 cursor-pointer">
-            <div className="flex-1 flex flex-col justify-center">
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] font-bold tracking-wider text-groww-primary uppercase bg-blue-50 px-2 py-0.5 rounded-sm">
-                        Markets
-                    </span>
-                    <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">
-                        {Math.floor(Math.random() * 5 + 2)} MIN READ
-                    </span>
-                </div>
-                <h3 className="text-base font-bold text-gray-900 leading-snug group-hover:text-groww-primary transition-colors font-serif tracking-tight">
-                    {title}
-                </h3>
-                <div className="flex items-center gap-2 text-xs text-gray-500 mt-3 font-medium">
-                    <span className="text-gray-800 uppercase">{publisher}</span>
-                    <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                    <span>{date}</span>
+        <a href={link} target="_blank" rel="noopener noreferrer" className="group bg-white flex flex-col h-full rounded-xl overflow-hidden hover:shadow-lg transition-shadow border border-gray-100">
+            {/* Image Section */}
+            <div className="h-48 bg-gray-200 relative overflow-hidden">
+                {imgUrl ? (
+                    <img src={imgUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-100">
+                        <TrendingUp size={40} />
+                    </div>
+                )}
+                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-800 rounded-sm">
+                    Stocks & Bonds
                 </div>
             </div>
 
-            {imgUrl ? (
-                <div className="w-32 h-24 shrink-0 rounded-md overflow-hidden bg-gray-100 border border-gray-100 shadow-sm relative">
-                    <img src={imgUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+            {/* Content Section */}
+            <div className="p-5 flex flex-col flex-1">
+                <h3 className="text-lg font-bold text-gray-900 leading-tight mb-3 font-serif line-clamp-3 group-hover:text-groww-primary transition-colors">
+                    {title}
+                </h3>
+
+                <div className="mt-auto pt-4 flex items-center justify-between text-xs text-gray-500 bg-white">
+                    <span className="font-bold text-gray-700 uppercase tracking-wide">{publisher}</span>
+                    <span>{date}</span>
                 </div>
-            ) : (
-                <div className="w-32 h-24 shrink-0 rounded-md bg-gray-100 flex items-center justify-center text-gray-300">
-                    <TrendingUp size={24} />
-                </div>
-            )}
+            </div>
         </a>
     )
 }
