@@ -40,16 +40,33 @@ const FALLBACK_NEWS = [
 ];
 
 const SCRAPINGBEE_API_KEY = 'B5XZUYSOBP48T5P1WC34TTZFBZZWMZUXRPA8TSVK5POCUOF6L3OQ9KC4EXUNGALRRFH34ROPNQFQLSV4';
-const TARGET_URL = 'https://www.investopedia.com/markets-news-4427704';
 
 router.get('/', async (req, res) => {
     try {
-        console.log("Fetching news via ScrapingBee...");
+        const category = req.query.category || 'all';
+        console.log(`Fetching news for category: ${category} via ScrapingBee...`);
+
+        // Map categories to Investopedia URLs
+        let targetUrl = 'https://www.investopedia.com/markets-news-4427704'; // Default 'all' or 'courts'
+
+        switch (category) {
+            case 'stocks':
+                targetUrl = 'https://www.investopedia.com/company-news-4427705';
+                break;
+            case 'economy':
+                targetUrl = 'https://www.investopedia.com/economy-news-4427709';
+                break;
+            case 'live':
+                targetUrl = 'https://www.investopedia.com/markets-news-4427704'; // Keep as markets for now
+                break;
+            default:
+                targetUrl = 'https://www.investopedia.com/markets-news-4427704';
+        }
 
         const response = await axios.get('https://app.scrapingbee.com/api/v1/', {
             params: {
                 'api_key': SCRAPINGBEE_API_KEY,
-                'url': TARGET_URL,
+                'url': targetUrl,
                 'render_js': 'true',
                 'wait': '3000'
             }
