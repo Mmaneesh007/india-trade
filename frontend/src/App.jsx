@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import IPODetail from './pages/IPODetail';
+import MarketMovers from './pages/MarketMovers';
+import TradePage from './pages/TradePage';
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/ipo/:ipoId" element={<IPODetail />} />
+          <Route path="/market-movers" element={<MarketMovers />} />
+          <Route path="/trade/:symbol" element={<TradePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </SocketProvider>

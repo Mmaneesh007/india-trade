@@ -4,6 +4,7 @@ import StockChart from '../components/StockChart';
 import MutualFunds from '../components/MutualFunds';
 import MarketOverview from '../components/MarketOverview';
 import MarketTurnover from '../components/MarketTurnover';
+import TopMovers from '../components/TopMovers';
 import TransactionHistory from '../components/TransactionHistory';
 import Watchlist from '../components/Watchlist';
 import { useSocket } from '../context/SocketContext';
@@ -443,6 +444,11 @@ export default function Dashboard() {
                     {/* Market Turnover - Real-time NSE Data */}
                     <div className="my-8">
                         <MarketTurnover />
+                    </div>
+
+                    {/* Top Market Movers */}
+                    <div className="my-8">
+                        <TopMovers />
                     </div>
 
                     <div className="border-t border-gray-200 my-8"></div>
