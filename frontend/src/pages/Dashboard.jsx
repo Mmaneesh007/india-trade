@@ -3,8 +3,10 @@ import Header from '../components/Header';
 import StockChart from '../components/StockChart';
 import MutualFunds from '../components/MutualFunds';
 import MarketOverview from '../components/MarketOverview';
+import TransactionHistory from '../components/TransactionHistory';
+import Watchlist from '../components/Watchlist';
 import { useSocket } from '../context/SocketContext';
-import { Search, Plus, Minus, Briefcase, RefreshCw } from 'lucide-react';
+import { Search, Plus, Minus, Briefcase, RefreshCw, Star } from 'lucide-react';
 import api from '../api'; // Centralized API Client
 import { MOCK_NIFTY, MOCK_RELIANCE, generateSmartCandles } from '../mockData';
 
@@ -14,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 export default function Dashboard() {
     const { socket, isConnected } = useSocket();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('stocks'); // stocks | mutual_funds | news
+    const [activeTab, setActiveTab] = useState('stocks'); // stocks | mutual_funds | news | watchlist | portfolio
     const [symbol, setSymbol] = useState('RELIANCE.NS'); // Default to full symbol
     const [priceData, setPriceData] = useState(null);
     const [candles, setCandles] = useState(MOCK_RELIANCE.candles);
@@ -29,6 +31,9 @@ export default function Dashboard() {
     const [news, setNews] = useState([]);
     const [loadingNews, setLoadingNews] = useState(true);
     const [newsCategory, setNewsCategory] = useState('all');
+
+    // Watchlist
+    const [watchlist, setWatchlist] = useState([]);
     const [similarStocks, setSimilarStocks] = useState([]);
 
     const TOP_STOCKS = [
@@ -93,6 +98,51 @@ export default function Dashboard() {
         } finally {
             setLoadingNews(false);
         }
+    };
+
+    // Fetch watchlist on load
+    useEffect(() => {
+        if (user) {
+            fetchWatchlist();
+        }
+    }, [user]);
+
+    const fetchWatchlist = async () => {
+        if (!user) return;
+        try {
+            const res = await api.get(`/api/watchlist/${user.id}`);
+            setWatchlist(res.data);
+        } catch (error) {
+            console.error('Failed to fetch watchlist:', error);
+        }
+    };
+
+    const toggleWatchlist = async (sym) => {
+        if (!user) {
+            alert('Please log in to use watchlist');
+            return;
+        }
+
+        const isInWatchlist = watchlist.some(item => item.symbol === sym);
+
+        try {
+            if (isInWatchlist) {
+                await api.delete(`/api/watchlist/${user.id}/${sym}`);
+                setWatchlist(prev => prev.filter(item => item.symbol !== sym));
+            } else {
+                const res = await api.post(`/api/watchlist/${user.id}`, { symbol: sym });
+                setWatchlist(prev => [...prev, res.data]);
+            }
+        } catch (error) {
+            console.error('Failed to toggle watchlist:', error);
+            if (error.response?.status === 409) {
+                alert('Stock already in watchlist');
+            }
+        }
+    };
+
+    const isInWatchlist = (sym) => {
+        return watchlist.some(item => item.symbol === sym);
     };
 
     // Refetch news when category changes
@@ -283,6 +333,20 @@ export default function Dashboard() {
 
             {/* MUTUAL FUNDS TAB */}
             {activeTab === 'mutual_funds' && <MutualFunds />}
+
+            {/* PORTFOLIO TAB */}
+            {activeTab === 'portfolio' && user && <TransactionHistory userId={user.id} />}
+
+            {/* WATCHLIST TAB */}
+            {activeTab === 'watchlist' && user && (
+                <Watchlist
+                    userId={user.id}
+                    onStockClick={(tab, sym) => {
+                        setActiveTab(tab);
+                        if (sym) setSymbol(sym);
+                    }}
+                />
+            )}
 
             {/* STOCKS NEWS TAB */}
             {activeTab === 'news' && (
