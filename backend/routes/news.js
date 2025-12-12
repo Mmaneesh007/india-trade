@@ -1,5 +1,7 @@
 import express from 'express';
 import yahooFinance from 'yahoo-finance2';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 const router = express.Router();
 
@@ -37,25 +39,65 @@ const FALLBACK_NEWS = [
     }
 ];
 
+const SCRAPINGBEE_API_KEY = 'B5XZUYSOBP48T5P1WC34TTZFBZZWMZUXRPA8TSVK5POCUOF6L3OQ9KC4EXUNGALRRFH34ROPNQFQLSV4';
+const TARGET_URL = 'https://www.investopedia.com/markets-news-4427704';
+
 router.get('/', async (req, res) => {
     try {
-        const query = req.query.q || 'India Stock Market';
+        console.log("Fetching news via ScrapingBee...");
 
-        // Try fetching real news with a short timeout
-        // Note: Adding suppressErrors to avoid crashing on some Yahoo responses
-        const results = await Promise.race([
-            yahooFinance.search(query, { newsCount: 10 }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-        ]);
+        const response = await axios.get('https://app.scrapingbee.com/api/v1/', {
+            params: {
+                'api_key': SCRAPINGBEE_API_KEY,
+                'url': TARGET_URL,
+                'render_js': 'true',
+                'wait': '3000'
+            }
+        });
 
-        if (results.news && results.news.length > 0) {
-            res.json(results.news);
+        const html = response.data;
+        const $ = cheerio.load(html);
+        const newsItems = [];
+
+        // Broad Search for ANY link that contains an image and text
+        $('a').each((i, el) => {
+            if (newsItems.length >= 10) return;
+
+            const link = $(el).attr('href');
+            const title = $(el).find('.card__title-text, .card-title, span.text').first().text().trim() ||
+                $(el).find('h3').text().trim() ||
+                $(el).text().trim();
+
+            // Image search
+            let img = $(el).find('img').attr('data-src') ||
+                $(el).find('img').attr('src');
+
+            // Filter: Must have a substantial title and link
+            if (link && title && title.length > 20 && img) {
+                // Determine publisher (Investopedia usually)
+                newsItems.push({
+                    title,
+                    link,
+                    publisher: "Investopedia",
+                    providerPublishTime: Math.floor(Date.now() / 1000),
+                    // Map to existing Yahoo structure for frontend compatibility
+                    thumbnail: {
+                        resolutions: [{ url: img }]
+                    }
+                });
+            }
+        });
+
+        if (newsItems.length > 0) {
+            console.log(`Successfully fetched ${newsItems.length} items from Investopedia.`);
+            res.json(newsItems);
         } else {
-            console.log("Yahoo returned no news, using fallback.");
+            console.log("ScrapingBee returned 0 items, using fallback.");
             res.json(FALLBACK_NEWS);
         }
+
     } catch (error) {
-        console.error("News fetch failed (using fallback):", error.message);
+        console.error("News fetch failed (ScrapingBee):", error.message);
         // Send fallback instead of error
         res.json(FALLBACK_NEWS);
     }
