@@ -11,6 +11,7 @@ import transactionsRouter from './routes/transactions.js';
 import watchlistRouter from './routes/watchlist.js';
 import ipoRouter from './routes/ipo.js';
 import turnoverRouter from './routes/turnover.js';
+import mutualfundsRouter from './routes/mutualfunds.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -32,6 +33,7 @@ app.use('/api/transactions', transactionsRouter);
 app.use('/api/watchlist', watchlistRouter);
 app.use('/api/ipo', ipoRouter);
 app.use('/api/turnover', turnoverRouter);
+app.use('/api/mutualfunds', mutualfundsRouter);
 
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => console.log(`Backend listening on ${PORT}`));
