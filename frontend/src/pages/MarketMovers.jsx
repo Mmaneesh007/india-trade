@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, TrendingDown, BarChart2, ArrowUpRight, ArrowDownRight, Activity, ChevronDown, Zap, Newspaper } from 'lucide-react';
+import { TrendingUp, TrendingDown, BarChart2, ArrowUpRight, ArrowDownRight, Activity, ChevronDown, Zap, Newspaper, ArrowLeft } from 'lucide-react';
 import api from '../api';
 
 // Mini sparkline chart component
@@ -86,6 +86,19 @@ export default function MarketMovers() {
 
     return (
         <div className="min-h-screen bg-gray-50/50 pb-20">
+            {/* Header */}
+            <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+                <div className="container mx-auto px-4 h-16 flex items-center gap-4">
+                    <button
+                        onClick={() => navigate('/dashboard')}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                    <h1 className="font-bold text-xl text-gray-900">Market Movers</h1>
+                </div>
+            </header>
+
             {/* Header Section */}
             <div className="bg-white border-b border-gray-200 sticky top-16 z-30">
                 <div className="container mx-auto px-4 py-4">
