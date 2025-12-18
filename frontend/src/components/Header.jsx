@@ -3,6 +3,7 @@ import { Search, TrendingUp, Bell, ShoppingCart, User, LogOut, Settings, Chevron
 import api from '../api';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import AddFundsModal from './AddFundsModal';
 
 export default function Header({ activeTab, setActiveTab, setSymbol }) {
     const navigate = useNavigate();
@@ -107,6 +108,8 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
         { id: 2, title: 'TCS dividend announced', time: '1 hour ago', type: 'news' },
         { id: 3, title: 'Your buy order executed', time: '2 hours ago', type: 'order' },
     ];
+
+    const [showAddFunds, setShowAddFunds] = useState(false);
 
     return (
         <header className="bg-white/80 backdrop-blur-md border-b border-white/40 sticky top-0 z-50 transition-all">
@@ -258,7 +261,7 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                                     <span className="text-sm text-gray-700">Order History</span>
                                 </button>
                                 <button
-                                    onClick={() => { alert('Add Funds feature coming soon!'); setShowQuickActions(false); }}
+                                    onClick={() => { setShowAddFunds(true); setShowQuickActions(false); }}
                                     className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 text-left"
                                 >
                                     <Wallet size={18} className="text-green-500" />
@@ -325,6 +328,13 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                     </div>
                 </div>
             </div>
+
+            <AddFundsModal
+                isOpen={showAddFunds}
+                onClose={() => setShowAddFunds(false)}
+                userId={user?.id}
+                onSuccess={(newBal) => alert(`Funds added! New Balance: ₹${newBal}`)}
+            />
         </header>
     );
 }

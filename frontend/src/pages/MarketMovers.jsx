@@ -57,13 +57,13 @@ export default function MarketMovers() {
 
     useEffect(() => {
         fetchMoversData();
-    }, [activeTab]);
+    }, [activeTab, selectedIndex]);
 
     const fetchMoversData = async () => {
         setLoading(true);
         try {
             const endpoint = activeTab === 'volume' ? 'volume-shockers' : activeTab;
-            const res = await api.get(`/api/movers/${endpoint}?count=20`);
+            const res = await api.get(`/api/movers/${endpoint}?count=20&index=${selectedIndex}`);
             setMoversData(res.data);
         } catch (error) {
             console.error('Failed to fetch movers:', error);
@@ -99,8 +99,8 @@ export default function MarketMovers() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id
-                                        ? 'bg-gray-900 text-white'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-gray-900 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 {tab.label}

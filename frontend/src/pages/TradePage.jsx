@@ -19,7 +19,8 @@ export default function TradePage() {
     const [quantity, setQuantity] = useState('');
     const [priceType, setPriceType] = useState('limit'); // limit or market
     const [price, setPrice] = useState('');
-    const [balance, setBalance] = useState(100000); // Mock balance
+    const [balance, setBalance] = useState(0);
+    const [loadingBalance, setLoadingBalance] = useState(true);
 
     useEffect(() => {
         fetchStockData();
@@ -29,6 +30,37 @@ export default function TradePage() {
     const checkUser = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
+        if (user) fetchWalletBalance(user.id);
+    };
+
+    const fetchWalletBalance = async (userId) => {
+        try {
+            let { data, error } = await supabase
+                .from('wallet')
+                .select('balance')
+                .eq('user_id', userId)
+                .single();
+
+            if (error && error.code === 'PGRST116') {
+                // Wallet doesn't exist, create one with default funds
+                const { data: newData, error: createError } = await supabase
+                    .from('wallet')
+                    .insert([{ user_id: userId, balance: 100000 }])
+                    .select()
+                    .single();
+
+                if (createError) throw createError;
+                data = newData;
+            } else if (error) {
+                throw error;
+            }
+
+            if (data) setBalance(parseFloat(data.balance));
+        } catch (error) {
+            console.error('Error fetching wallet:', error);
+        } finally {
+            setLoadingBalance(false);
+        }
     };
 
     const fetchStockData = async () => {
@@ -89,11 +121,31 @@ export default function TradePage() {
 
         alert(`${tradeType} Order Placed!\n\n${qty} shares of ${stockData?.name}\n@ ₹${orderPrice}\nMode: ${orderMode.toUpperCase()}\nExchange: ${exchange}\nTotal: ₹${approxRequired}`);
 
-        // Update balance for simulation
+        // Update balance logic
+        let newBalance = balance;
         if (tradeType === 'BUY') {
-            setBalance(prev => prev - parseFloat(approxRequired));
+            newBalance = balance - parseFloat(approxRequired);
         } else {
-            setBalance(prev => prev + parseFloat(approxRequired));
+            newBalance = balance + parseFloat(approxRequired);
+        }
+
+        // Persist new balance
+        if (user) {
+            try {
+                const { error } = await supabase
+                    .from('wallet')
+                    .update({ balance: newBalance, updated_at: new Date() })
+                    .eq('user_id', user.id);
+
+                if (error) throw error;
+                setBalance(newBalance);
+            } catch (err) {
+                console.error('Failed to update balance:', err);
+                alert('Failed to update wallet balance. Please check your connection.');
+                return;
+            }
+        } else {
+            setBalance(newBalance); // Fallback for guest (though button is disabled for guest usually)
         }
 
         setQuantity('');
@@ -140,8 +192,8 @@ export default function TradePage() {
                         <button
                             onClick={() => setTradeType('BUY')}
                             className={`flex-1 py-4 text-center font-bold text-lg transition-colors ${tradeType === 'BUY'
-                                    ? 'text-groww-primary border-b-2 border-groww-primary bg-green-50/50'
-                                    : 'text-gray-400'
+                                ? 'text-groww-primary border-b-2 border-groww-primary bg-green-50/50'
+                                : 'text-gray-400'
                                 }`}
                         >
                             BUY
@@ -149,8 +201,8 @@ export default function TradePage() {
                         <button
                             onClick={() => setTradeType('SELL')}
                             className={`flex-1 py-4 text-center font-bold text-lg transition-colors ${tradeType === 'SELL'
-                                    ? 'text-red-500 border-b-2 border-red-500 bg-red-50/50'
-                                    : 'text-gray-400'
+                                ? 'text-red-500 border-b-2 border-red-500 bg-red-50/50'
+                                : 'text-gray-400'
                                 }`}
                         >
                             SELL
@@ -163,8 +215,8 @@ export default function TradePage() {
                             <button
                                 onClick={() => setOrderMode('delivery')}
                                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${orderMode === 'delivery'
-                                        ? 'border-gray-900 bg-white text-gray-900'
-                                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                                    ? 'border-gray-900 bg-white text-gray-900'
+                                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                     }`}
                             >
                                 Delivery
@@ -172,8 +224,8 @@ export default function TradePage() {
                             <button
                                 onClick={() => setOrderMode('intraday')}
                                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${orderMode === 'intraday'
-                                        ? 'border-gray-900 bg-white text-gray-900'
-                                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                                    ? 'border-gray-900 bg-white text-gray-900'
+                                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                     }`}
                             >
                                 Intraday
@@ -181,8 +233,8 @@ export default function TradePage() {
                             <button
                                 onClick={() => setOrderMode('mtf')}
                                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${orderMode === 'mtf'
-                                        ? 'border-gray-900 bg-white text-gray-900'
-                                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                                    ? 'border-gray-900 bg-white text-gray-900'
+                                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
                                     }`}
                             >
                                 MTF 3.13x
@@ -267,8 +319,8 @@ export default function TradePage() {
                             onClick={handleExecuteOrder}
                             disabled={!quantity || !price}
                             className={`w-full py-4 rounded-xl font-bold text-lg text-white transition-all ${tradeType === 'BUY'
-                                    ? 'bg-groww-primary hover:bg-green-600 disabled:bg-gray-300'
-                                    : 'bg-red-500 hover:bg-red-600 disabled:bg-gray-300'
+                                ? 'bg-groww-primary hover:bg-green-600 disabled:bg-gray-300'
+                                : 'bg-red-500 hover:bg-red-600 disabled:bg-gray-300'
                                 } disabled:cursor-not-allowed`}
                         >
                             {tradeType === 'BUY' ? 'Buy' : 'Sell'}
