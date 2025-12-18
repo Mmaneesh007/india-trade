@@ -336,4 +336,33 @@ router.get('/stock/:symbol', async (req, res) => {
     }
 });
 
+// Price Shockers Endpoint
+router.get('/price_shockers', (req, res) => {
+    const indexFilter = req.query.index;
+    const count = parseInt(req.query.count) || 20;
+
+    // Generate data with high volatility
+    const data = generateMoversData('shockers', count * 2, indexFilter);
+
+    // Filter for significant price changes (e.g., > 3% or < -3%) to simulate shockers
+    const shockers = data.filter(stock => Math.abs(stock.changePercent) > 2.5)
+        .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent))
+        .slice(0, count);
+
+    // Map to requested format
+    const formatted = shockers.map(s => ({
+        ticker: s.symbol,
+        company: s.name,
+        price: s.price,
+        percent_change: s.changePercent,
+        net_change: s.change,
+        high: s.week52High, // Using 52w high as mock high for now or generate day high
+        low: s.week52Low,   // Using 52w low as mock low
+        open: s.open || s.price * 0.98,
+        volume: s.volume
+    }));
+
+    res.json(formatted);
+});
+
 export default router;
