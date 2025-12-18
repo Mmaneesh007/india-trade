@@ -144,6 +144,18 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                         Stocks News
                     </button>
                     <button
+                        onClick={() => { setActiveTab('market-movers'); navigate('/market-movers'); }}
+                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${location.pathname === '/market-movers' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                    >
+                        Market Movers
+                    </button>
+                    <button
+                        onClick={() => { setActiveTab('mutual-funds'); navigate('/mutual-funds'); }}
+                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${location.pathname === '/mutual-funds' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                    >
+                        Mutual Funds
+                    </button>
+                    <button
                         onClick={() => setActiveTab('watchlist')}
                         className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'watchlist' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >

@@ -8,6 +8,7 @@ import Signup from './pages/Signup';
 import IPODetail from './pages/IPODetail';
 import MarketMovers from './pages/MarketMovers';
 import TradePage from './pages/TradePage';
+import MutualFunds from './pages/MutualFunds';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/ipo/:ipoId" element={<IPODetail />} />
           <Route path="/market-movers" element={<MarketMovers />} />
+          <Route path="/mutual-funds" element={<MutualFunds />} />
           <Route path="/trade/:symbol" element={<TradePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
