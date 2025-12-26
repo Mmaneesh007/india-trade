@@ -253,7 +253,7 @@ indian-stock-live/
 
 ---
 
-## 🎤 For Interviewers (Amazon, Microsoft, JP Morgan)
+## 🎤 For Interviewers
 
 This project demonstrates:
 
