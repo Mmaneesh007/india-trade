@@ -9,6 +9,7 @@ import IPODetail from './pages/IPODetail';
 import MarketMovers from './pages/MarketMovers';
 import TradePage from './pages/TradePage';
 import MutualFunds from './pages/MutualFunds';
+import BrokerConnect from './pages/BrokerConnect';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/broker" element={<BrokerConnect />} />
           <Route path="/ipo/:ipoId" element={<IPODetail />} />
           <Route path="/market-movers" element={<MarketMovers />} />
           <Route path="/mutual-funds" element={<MutualFunds />} />
@@ -29,3 +31,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

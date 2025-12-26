@@ -13,6 +13,8 @@ import ipoRouter from './routes/ipo.js';
 import turnoverRouter from './routes/turnover.js';
 import mutualFundsRouter from './routes/mutualfunds.js';
 import moversRouter from './routes/movers.js';
+import brokerAuthRouter from './routes/broker-auth.js';
+import tradingRouter from './routes/trading.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -36,6 +38,14 @@ app.use('/api/ipo', ipoRouter);
 app.use('/api/turnover', turnoverRouter);
 app.use('/api/mutual_funds', mutualFundsRouter);
 app.use('/api/movers', moversRouter);
+app.use('/api/broker', brokerAuthRouter);
+app.use('/api/trading', tradingRouter);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
 
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => console.log(`Backend listening on ${PORT}`));
+
