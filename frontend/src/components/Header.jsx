@@ -113,7 +113,7 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
 
     return (
         <header className="bg-white/80 backdrop-blur-md border-b border-white/40 sticky top-0 z-50 transition-all">
-            <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-8">
+            <div className="w-full px-6 h-16 flex items-center justify-between gap-4">
 
                 {/* Logo */}
                 <div className="flex items-center gap-2 cursor-pointer min-w-fit" onClick={() => setActiveTab('stocks')}>
@@ -124,64 +124,64 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                 </div>
 
                 {/* Minimal Tabs */}
-                <nav className="hidden md:flex items-center gap-1 bg-gray-100/50 p-1 rounded-full border border-gray-200/50">
+                <nav className="hidden md:flex items-center gap-1 bg-gray-100/50 p-1 rounded-full border border-gray-200/50 shrink-0">
                     <button
                         onClick={() => setActiveTab('stocks')}
-                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'stocks' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                        className={`text-xs lg:text-sm font-medium px-3 lg:px-4 py-1.5 rounded-full transition-all ${activeTab === 'stocks' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         Stocks
                     </button>
                     <button
                         onClick={() => setActiveTab('mutual_funds')}
-                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'mutual_funds' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                        className={`text-xs lg:text-sm font-medium px-3 lg:px-4 py-1.5 rounded-full transition-all ${activeTab === 'mutual_funds' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         Mutual Funds
                     </button>
                     <button
                         onClick={() => setActiveTab('news')}
-                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'news' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                        className={`text-xs lg:text-sm font-medium px-3 lg:px-4 py-1.5 rounded-full transition-all ${activeTab === 'news' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
-                        Stocks News
+                        News
                     </button>
                     <button
                         onClick={() => { setActiveTab('market-movers'); navigate('/market-movers'); }}
-                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${location.pathname === '/market-movers' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                        className={`text-xs lg:text-sm font-medium px-3 lg:px-4 py-1.5 rounded-full transition-all ${location.pathname === '/market-movers' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
-                        Market Movers
+                        Movers
                     </button>
                     <button
                         onClick={() => { setActiveTab('mutual-funds'); navigate('/mutual-funds'); }}
-                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${location.pathname === '/mutual-funds' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                        className={`text-xs lg:text-sm font-medium px-3 lg:px-4 py-1.5 rounded-full transition-all ${location.pathname === '/mutual-funds' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         Mutual Funds
                     </button>
                     <button
                         onClick={() => setActiveTab('watchlist')}
-                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'watchlist' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                        className={`text-xs lg:text-sm font-medium px-3 lg:px-4 py-1.5 rounded-full transition-all ${activeTab === 'watchlist' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         Watchlist
                     </button>
                     <button
                         onClick={() => setActiveTab('portfolio')}
-                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${activeTab === 'portfolio' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                        className={`text-xs lg:text-sm font-medium px-3 lg:px-4 py-1.5 rounded-full transition-all ${activeTab === 'portfolio' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         Portfolio
                     </button>
                     <button
                         onClick={() => { setActiveTab('broker'); navigate('/broker'); }}
-                        className={`text-sm font-medium px-4 py-1.5 rounded-full transition-all ${location.pathname === '/broker' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
+                        className={`text-xs lg:text-sm font-medium px-3 lg:px-4 py-1.5 rounded-full transition-all ${location.pathname === '/broker' ? 'bg-white text-gray-900 shadow-sm scale-105' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         Broker
                     </button>
                 </nav>
 
-                <div className="hidden xl:flex gap-6 text-xs border-l border-gray-200 pl-6 h-8 items-center min-w-fit">
+                <div className="hidden xl:flex gap-4 text-xs border-l border-gray-200 pl-4 h-8 items-center min-w-fit">
                     <IndexTicker name="NIFTY" data={indices.nifty} />
                     <IndexTicker name="SENSEX" data={indices.sensex} />
                 </div>
 
                 {/* Search & Profile (Right) */}
-                <div className="flex-1 max-w-2xl relative min-w-[300px] lg:min-w-[500px]">
+                <div className="flex-1 max-w-2xl relative min-w-[200px]">
                     <div className="relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-groww-primary transition-colors" size={20} />
                         <input
