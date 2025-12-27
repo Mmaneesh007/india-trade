@@ -58,6 +58,10 @@ export default function AddFundsModal({ isOpen, onClose, userId, onSuccess }) {
                         <Wallet className="text-groww-primary" size={24} />
                         Add Funds
                     </h2>
+                    <div className="text-[10px] text-gray-500 mt-1">
+                        Note: This adds virtual money to your <span className="font-semibold text-gray-700">Demo Wallet</span>.
+                        <br />For Real Trading, manage funds in your Angel One app.
+                    </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                         <X size={24} />
                     </button>

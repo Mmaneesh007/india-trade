@@ -181,7 +181,7 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                 </div>
 
                 {/* Search & Profile (Right) */}
-                <div className="flex-1 max-w-md hidden lg:block relative">
+                <div className="flex-1 max-w-md relative">
                     <div className="relative group">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-groww-primary transition-colors" size={20} />
                         <input
@@ -200,7 +200,11 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                             {results.map((item) => (
                                 <div
                                     key={item.symbol}
-                                    onClick={() => handleSelect(item.symbol)}
+                                    onClick={() => {
+                                        navigate(`/trade/${item.symbol}`);
+                                        setQuery('');
+                                        setShowResults(false);
+                                    }}
                                     className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0"
                                 >
                                     <div className="font-bold text-gray-900">{item.symbol}</div>
@@ -215,6 +219,14 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                 </div>
 
                 <div className="flex items-center gap-4 text-gray-500">
+                    <button
+                        onClick={() => setShowAddFunds(true)}
+                        className="hidden md:flex items-center gap-2 text-groww-primary hover:bg-green-50 px-3 py-1.5 rounded-full font-medium text-sm transition-colors"
+                    >
+                        <Wallet size={18} />
+                        <span>Add Funds</span>
+                    </button>
+
                     {/* Notifications Bell */}
                     <div className="relative" ref={notifRef}>
                         <button
