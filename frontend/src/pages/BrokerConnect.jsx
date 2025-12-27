@@ -84,7 +84,7 @@ export default function BrokerConnect() {
 
     const checkConnectionStatus = async () => {
         try {
-            const response = await api.get(`/broker/status/${user.id}`);
+            const response = await api.get(`/api/broker/status/${user.id}`);
             setConnectionStatus(response.data);
         } catch (error) {
             console.error('Error checking status:', error);
@@ -95,7 +95,7 @@ export default function BrokerConnect() {
         setLoading(true);
         setError('');
         try {
-            const response = await api.post(`/broker/connect/paper/${user.id}`, {
+            const response = await api.post(`/api/broker/connect/paper/${user.id}`, {
                 initialBalance: paperSettings.initialBalance
             });
 
@@ -114,7 +114,7 @@ export default function BrokerConnect() {
         setLoading(true);
         setError('');
         try {
-            const response = await api.post(`/broker/connect/angelone/${user.id}`, {
+            const response = await api.post(`/api/broker/connect/angelone/${user.id}`, {
                 clientId: angelCredentials.clientId,
                 password: angelCredentials.password,
                 totp: angelCredentials.totp
@@ -134,7 +134,7 @@ export default function BrokerConnect() {
     const disconnect = async () => {
         setLoading(true);
         try {
-            await api.post(`/broker/disconnect/${user.id}`);
+            await api.post(`/api/broker/disconnect/${user.id}`);
             setConnectionStatus(null);
             setSelectedBroker(null);
         } catch (err) {

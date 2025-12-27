@@ -22,6 +22,7 @@ const SMARTAPI_HOLDINGS = `${SMARTAPI_BASE}/rest/secure/angelbroking/portfolio/v
 const SMARTAPI_FUNDS = `${SMARTAPI_BASE}/rest/secure/angelbroking/user/v1/getRMS`;
 const SMARTAPI_LTP = `${SMARTAPI_BASE}/rest/secure/angelbroking/order/v1/getLtpData`;
 const SMARTAPI_CANDLE = `${SMARTAPI_BASE}/rest/secure/angelbroking/historical/v1/getCandleData`;
+const SMARTAPI_SEARCH = `${SMARTAPI_BASE}/rest/secure/angelbroking/order/v1/searchScrip`;
 
 export class AngelOneAdapter extends BrokerInterface {
     constructor(config = {}) {
@@ -33,6 +34,8 @@ export class AngelOneAdapter extends BrokerInterface {
         this.jwtToken = null;
         this.refreshToken = null;
         this.feedToken = null;
+        this.tokenCache = new Map();
+        this.tokenToSymbol = new Map();
     }
 
     getName() {
@@ -393,24 +396,169 @@ export class AngelOneAdapter extends BrokerInterface {
         }
     }
 
+
+    async searchScrip(symbol, exchange = 'NSE') {
+        try {
+            const response = await axios.post(SMARTAPI_SEARCH, {
+                exchange: exchange,
+                searchscrip: symbol
+            }, {
+                headers: this._getHeaders()
+            });
+
+            if (response.data.status && response.data.data) {
+                return response.data.data; // Returns array of matching scrips
+            }
+            return [];
+        } catch (error) {
+            console.error('Search scrip error:', error.response?.data || error.message);
+            return [];
+        }
+    }
+
     // ==================== WebSocket Methods ====================
 
     async connectWebSocket(onTick, onError) {
-        // WebSocket implementation using SmartAPI WebSocket
-        // Will be implemented with ws library
-        console.log('WebSocket connection - to be implemented');
+        try {
+            // Import WebSocketV2 dynamically
+            // Note: Adjust import based on how smartapi-javascript exports it. 
+            // CommonJS: const { WebSocketV2 } = require('smartapi-javascript');
+            // ESM: import { WebSocketV2 } from 'smartapi-javascript';
+            // Since we are in module, dynamic import() is best.
+            const module = await import('smartapi-javascript');
+            const WebSocketV2 = module.WebSocketV2 || module.default.WebSocketV2;
+
+            if (!this.clientId || !this.feedToken || !this.apiKey) {
+                throw new Error('Missing credentials for WebSocket connection');
+            }
+
+            this.ws = new WebSocketV2({
+                jwttoken: this.jwtToken,
+                apikey: this.apiKey,
+                clientcode: this.clientId,
+                feedtype: this.feedToken
+            });
+
+            this.ws.connect().then(() => {
+                console.log('Angel One WebSocket V2 connected');
+
+                // Keep the connection alive
+                if (this.pingInterval) clearInterval(this.pingInterval);
+                this.pingInterval = setInterval(() => {
+                    if (this.ws && this.ws.connected) {
+                        // this.ws.runScript();
+                    }
+                }, 10000);
+            }).catch(err => {
+                console.error('WebSocket connection failed:', err);
+                if (onError) onError(err);
+            });
+
+            this.ws.on('tick', (tickData) => {
+                if (onTick) {
+                    // Normalize tick data
+                    // SDK V2 tick might have 'last_traded_price' or 'ltp' depending on mode
+                    const token = tickData.token;
+                    const symbol = this.tokenToSymbol.get(token);
+
+                    const normalizedTick = {
+                        ...tickData,
+                        trading_symbol: symbol || tickData.trading_symbol || tickData.token, // Fallback
+                        last_traded_price: tickData.last_traded_price || tickData.ltp, // Normalize LTP
+                        change_percent: tickData.change_percent || 0 // Ensure field exists
+                    };
+
+                    onTick([normalizedTick]);
+                }
+            });
+
+            this.ws.on('error', (error) => {
+                console.error('WebSocket error:', error);
+                if (onError) onError(error);
+            });
+
+            this.ws.on('close', () => {
+                console.log('WebSocket connection closed');
+            });
+
+        } catch (error) {
+            console.error('Failed to initialize WebSocket:', error);
+            if (onError) onError(error);
+        }
     }
 
     async subscribe(symbols) {
-        console.log('Subscribe to symbols:', symbols);
+        if (!this.ws) {
+            console.warn('WebSocket not connected, cannot subscribe');
+            return;
+        }
+
+        const tokenList = [];
+        const debugSymbols = [];
+
+        if (!Array.isArray(symbols)) symbols = [symbols];
+
+        for (const s of symbols) {
+            // If s is object with { token, exchangeType }
+            if (typeof s === 'object' && s.token) {
+                tokenList.push({
+                    exchangeType: s.exchangeType || 1, // 1 for NSE_CM
+                    tokens: [s.token]
+                });
+                debugSymbols.push(s.token);
+            }
+            // If s is string, try to lookup token
+            else if (typeof s === 'string') {
+                if (this.tokenCache.has(s)) {
+                    tokenList.push(this.tokenCache.get(s));
+                    debugSymbols.push(`${s}:${this.tokenCache.get(s).tokens[0]} (cached)`);
+                    continue;
+                }
+
+                try {
+                    // Try exact match first
+                    const results = await this.searchScrip(s);
+                    // Filter for EQ or desired series if multiple
+                    const match = results.find(r => r.tradingsymbol === s && r.exchangethrough === 'NSE') || results[0];
+
+                    if (match) {
+                        const tokenData = {
+                            exchangeType: 1, // Assuming NSE CM
+                            tokens: [match.symboltoken]
+                        };
+                        this.tokenCache.set(s, tokenData);
+                        this.tokenToSymbol.set(match.symboltoken, s); // Update reverse map
+                        tokenList.push(tokenData);
+                        debugSymbols.push(`${s}:${match.symboltoken}`);
+                    } else {
+                        console.warn(`Could not resolve token for symbol: ${s}`);
+                    }
+                } catch (err) {
+                    console.error(`Error resolving token for ${s}:`, err.message);
+                }
+            }
+        }
+
+        if (tokenList.length > 0) {
+            console.log('Subscribing to tokens:', debugSymbols);
+            this.ws.subscribe("sub_1", 3, tokenList); // Mode 3: SnapQuote
+        }
     }
 
     async unsubscribe(symbols) {
-        console.log('Unsubscribe from symbols:', symbols);
+        // Implementation for unsubscribe if needed
+        // this.ws.unsubscribe(...)
+        console.log('Unsubscribe called');
     }
 
     async disconnectWebSocket() {
-        console.log('Disconnect WebSocket');
+        if (this.pingInterval) clearInterval(this.pingInterval);
+        if (this.ws) {
+            try {
+                this.ws.close();
+            } catch (e) { console.error('Error closing WS', e); }
+            this.ws = null;
+        }
     }
 }
 

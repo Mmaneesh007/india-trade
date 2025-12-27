@@ -268,19 +268,58 @@ export class PaperTradingAdapter extends BrokerInterface {
     // ==================== WebSocket Methods ====================
 
     async connectWebSocket(onTick, onError) {
-        console.log('Paper trading WebSocket - simulating connection');
-        // In paper mode, we can simulate ticks
+        if (this.wsInterval) {
+            clearInterval(this.wsInterval);
+        }
+
+        console.log('Paper trading WebSocket - connected');
+        this.subscribedSymbols = new Set();
+        this.onTickPayload = onTick;
+
+        // Simulate ticks every second
+        this.wsInterval = setInterval(() => {
+            if (this.subscribedSymbols.size === 0) return;
+
+            const ticks = [];
+            for (const symbol of this.subscribedSymbols) {
+                const currentPrice = this._getSimulatedPrice(symbol);
+                const variation = (Math.random() - 0.5) * (currentPrice * 0.002); // 0.2% variation
+                const newPrice = parseFloat((currentPrice + variation).toFixed(2));
+
+                ticks.push({
+                    symbol_token: '12345', // Mock token
+                    trading_symbol: symbol,
+                    last_traded_price: newPrice,
+                    change_percent: (Math.random() * 2 - 1).toFixed(2),
+                    exchange_timestamp: new Date().toISOString()
+                });
+            }
+
+            if (ticks.length > 0 && this.onTickPayload) {
+                this.onTickPayload(ticks);
+            }
+        }, 1000);
     }
 
     async subscribe(symbols) {
-        console.log('Paper trading subscribe:', symbols);
+        if (!Array.isArray(symbols)) symbols = [symbols];
+        symbols.forEach(s => this.subscribedSymbols.add(s));
+        console.log('Paper trading subscribed:', symbols);
+        return { success: true };
     }
 
     async unsubscribe(symbols) {
-        console.log('Paper trading unsubscribe:', symbols);
+        if (!Array.isArray(symbols)) symbols = [symbols];
+        symbols.forEach(s => this.subscribedSymbols.delete(s));
+        console.log('Paper trading unsubscribed:', symbols);
+        return { success: true };
     }
 
     async disconnectWebSocket() {
+        if (this.wsInterval) {
+            clearInterval(this.wsInterval);
+            this.wsInterval = null;
+        }
         console.log('Paper trading WebSocket disconnected');
     }
 

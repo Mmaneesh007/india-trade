@@ -70,6 +70,13 @@ class BrokerServiceManager {
                     tokens: result.data
                 });
 
+                // Connect WebSocket
+                adapter.connectWebSocket((ticks) => {
+                    if (this.tickHandler) {
+                        this.tickHandler(ticks);
+                    }
+                });
+
                 return {
                     success: true,
                     broker: brokerId,
@@ -81,6 +88,13 @@ class BrokerServiceManager {
                 broker: brokerId,
                 adapter: adapter,
                 connectedAt: new Date()
+            });
+
+            // Connect WebSocket for Paper Trading
+            adapter.connectWebSocket((ticks) => {
+                if (this.tickHandler) {
+                    this.tickHandler(ticks);
+                }
             });
 
             return {
@@ -215,7 +229,33 @@ class BrokerServiceManager {
         const adapter = this.getUserAdapter(userId);
         return adapter.getLTP(exchange, symbol, symbolToken);
     }
+    // ==================== WebSocket Proxy Methods ====================
+
+    setTickHandler(callback) {
+        this.tickHandler = callback;
+    }
+
+    async subscribe(userId, symbols) {
+        try {
+            const adapter = this.getUserAdapter(userId);
+            return adapter.subscribe(symbols);
+        } catch (error) {
+            console.error('Subscribe error:', error.message);
+            // Fallback: if not connected, maybe we just ignore or use internal mock?
+            return { success: false, error: error.message };
+        }
+    }
+
+    async unsubscribe(userId, symbols) {
+        try {
+            const adapter = this.getUserAdapter(userId);
+            return adapter.unsubscribe(symbols);
+        } catch (error) {
+            console.error('Unsubscribe error:', error.message);
+        }
+    }
 }
+
 
 // Singleton instance
 export const brokerService = new BrokerServiceManager();

@@ -4,6 +4,8 @@ import { ArrowLeft, Settings, ChevronDown, Info } from 'lucide-react';
 import api from '../api';
 import { supabase } from '../supabaseClient';
 
+import { io } from 'socket.io-client';
+
 export default function TradePage() {
     const { symbol } = useParams();
     const navigate = useNavigate();
@@ -22,18 +24,83 @@ export default function TradePage() {
     const [balance, setBalance] = useState(0);
     const [loadingBalance, setLoadingBalance] = useState(true);
 
+    const [brokerStatus, setBrokerStatus] = useState(null);
+
     useEffect(() => {
-        fetchStockData();
-        checkUser();
+        if (symbol) fetchStockData();
+        checkUserAndBroker();
     }, [symbol]);
 
-    const checkUser = async () => {
+    const checkUserAndBroker = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
-        if (user) fetchWalletBalance(user.id);
+
+        if (user) {
+            // Check broker connection first
+            try {
+                const res = await api.get(`/api/broker/status/${user.id}`);
+                setBrokerStatus(res.data);
+
+                if (res.data?.connected) {
+                    fetchBrokerFunds(user.id);
+                } else {
+                    fetchLocalWalletBalance(user.id);
+                }
+            } catch (err) {
+                console.error('Error checking broker:', err);
+                fetchLocalWalletBalance(user.id);
+            }
+        }
     };
 
-    const fetchWalletBalance = async (userId) => {
+    const fetchBrokerFunds = async (userId) => {
+        setLoadingBalance(true);
+        try {
+            const res = await api.get(`/api/trading/funds/${userId}`);
+            if (res.data?.availablecash) {
+                setBalance(parseFloat(res.data.availablecash));
+            }
+        } catch (err) {
+            console.error('Error fetching broker funds:', err);
+        } finally {
+            setLoadingBalance(false);
+        }
+    };
+
+    // WebSocket logic
+    useEffect(() => {
+        if (!symbol || !user) return;
+
+        const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:4000');
+
+        socket.on('connect', () => {
+            console.log('Connected to WebSocket');
+            socket.emit('subscribe', { symbol, userId: user.id });
+        });
+
+        socket.on('price_update', (data) => {
+            if (data.symbol === symbol) {
+                setStockData(prev => ({
+                    ...prev,
+                    priceNSE: data.price,
+                    changePercent: data.change
+                }));
+                // Also update current price input if user hasn't typed manually? 
+                // Better to just update the "LTP" text
+                if (priceType === 'market') {
+                    setPrice(data.price.toFixed(2));
+                }
+            }
+        });
+
+        return () => {
+            socket.emit('unsubscribe', { symbol, userId: user.id });
+            socket.disconnect();
+        };
+    }, [symbol, user]);
+
+    const fetchLocalWalletBalance = async (userId) => {
+        setLoadingBalance(true);
         try {
             let { data, error } = await supabase
                 .from('wallet')
@@ -42,7 +109,6 @@ export default function TradePage() {
                 .single();
 
             if (error && error.code === 'PGRST116') {
-                // Wallet doesn't exist, create one with default funds
                 const { data: newData, error: createError } = await supabase
                     .from('wallet')
                     .insert([{ user_id: userId, balance: 100000 }])
@@ -71,7 +137,6 @@ export default function TradePage() {
             setPrice(res.data.priceNSE?.toFixed(2) || '500');
         } catch (error) {
             console.error('Failed to fetch stock:', error);
-            // Fallback data
             setStockData({
                 symbol,
                 name: symbol.replace('.NS', '').replace('.BO', ''),
@@ -101,54 +166,65 @@ export default function TradePage() {
             return;
         }
 
-        // Log transaction
-        if (user) {
+        if (brokerStatus?.connected) {
+            // Execute via Broker API
             try {
-                await supabase.from('transactions').insert([{
-                    user_id: user.id,
-                    symbol: symbol,
-                    type: tradeType,
+                const response = await api.post(`/api/trading/order/${user.id}`, {
+                    symbol: stockData?.symbol || symbol,
+                    exchange: exchange,
+                    transactionType: tradeType,
                     quantity: qty,
                     price: orderPrice,
-                    mode: orderMode,
-                    exchange: exchange,
-                    timestamp: new Date().toISOString()
-                }]);
+                    productType: orderMode.toUpperCase()
+                });
+
+                if (response.data.success) {
+                    alert(`${tradeType} Order Placed via ${brokerStatus.broker === 'paper' ? 'Paper Trading' : 'Angel One'}!\n\nOrder ID: ${response.data.orderId}`);
+                    setQuantity('');
+                    fetchBrokerFunds(user.id); // Refresh balance
+                }
             } catch (err) {
-                console.error('Failed to log transaction:', err);
-            }
-        }
-
-        alert(`${tradeType} Order Placed!\n\n${qty} shares of ${stockData?.name}\n@ ₹${orderPrice}\nMode: ${orderMode.toUpperCase()}\nExchange: ${exchange}\nTotal: ₹${approxRequired}`);
-
-        // Update balance logic
-        let newBalance = balance;
-        if (tradeType === 'BUY') {
-            newBalance = balance - parseFloat(approxRequired);
-        } else {
-            newBalance = balance + parseFloat(approxRequired);
-        }
-
-        // Persist new balance
-        if (user) {
-            try {
-                const { error } = await supabase
-                    .from('wallet')
-                    .update({ balance: newBalance, updated_at: new Date() })
-                    .eq('user_id', user.id);
-
-                if (error) throw error;
-                setBalance(newBalance);
-            } catch (err) {
-                console.error('Failed to update balance:', err);
-                alert('Failed to update wallet balance. Please check your connection.');
-                return;
+                console.error('Order failed:', err);
+                alert(`Order Failed: ${err.response?.data?.error || err.message}`);
             }
         } else {
-            setBalance(newBalance); // Fallback for guest (though button is disabled for guest usually)
-        }
+            // Execute via Local Wallet (Legacy/Demo)
+            if (user) {
+                try {
+                    await supabase.from('transactions').insert([{
+                        user_id: user.id,
+                        symbol: symbol,
+                        type: tradeType,
+                        quantity: qty,
+                        price: orderPrice,
+                        mode: orderMode,
+                        exchange: exchange,
+                        timestamp: new Date().toISOString()
+                    }]);
 
-        setQuantity('');
+                    // Update balance logic
+                    let newBalance = balance;
+                    if (tradeType === 'BUY') {
+                        newBalance = balance - parseFloat(approxRequired);
+                    } else {
+                        newBalance = balance + parseFloat(approxRequired);
+                    }
+
+                    const { error } = await supabase
+                        .from('wallet')
+                        .update({ balance: newBalance, updated_at: new Date() })
+                        .eq('user_id', user.id);
+
+                    if (error) throw error;
+                    setBalance(newBalance);
+                    alert(`${tradeType} Order Placed (Demo Wallet)!\n\nTotal: ₹${approxRequired}`);
+                    setQuantity('');
+                } catch (err) {
+                    console.error('Failed to update balance:', err);
+                    alert('Failed to execute demo order.');
+                }
+            }
+        }
     };
 
     if (loading) {
