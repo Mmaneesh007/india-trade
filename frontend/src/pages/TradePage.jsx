@@ -6,6 +6,8 @@ import { supabase } from '../supabaseClient';
 
 import { io } from 'socket.io-client';
 
+import AddFundsModal from '../components/AddFundsModal';
+
 export default function TradePage() {
     const { symbol } = useParams();
     const navigate = useNavigate();
@@ -24,6 +26,7 @@ export default function TradePage() {
     const [balance, setBalance] = useState(0);
     const [loadingBalance, setLoadingBalance] = useState(true);
 
+    const [showAddFunds, setShowAddFunds] = useState(false);
     const [brokerStatus, setBrokerStatus] = useState(null);
 
     useEffect(() => {
@@ -57,11 +60,19 @@ export default function TradePage() {
         setLoadingBalance(true);
         try {
             const res = await api.get(`/api/trading/funds/${userId}`);
-            if (res.data?.availablecash) {
-                setBalance(parseFloat(res.data.availablecash));
+            // Angel One API might return net net fund or availablecash
+            if (res.data?.success === false) {
+                // Fallback if API fails (e.g. wrong key)
+                console.warn("Broker funds fetch failed, defaulting to 0");
+                setBalance(0);
+            } else if (res.data?.availablecash || res.data?.net) {
+                setBalance(parseFloat(res.data.availablecash || res.data.net));
+            } else {
+                setBalance(0);
             }
         } catch (err) {
             console.error('Error fetching broker funds:', err);
+            setBalance(0);
         } finally {
             setLoadingBalance(false);
         }
@@ -227,6 +238,19 @@ export default function TradePage() {
         }
     };
 
+    const handleAddFundsClick = () => {
+        if (brokerStatus?.connected) {
+            // If connected to broker, redirect/alert
+            const confirm = window.confirm("You are connected to Angel One.\n\nTo trade with real money, you must add funds directly in your Angel One account.\n\nDo you want to go to Angel One website?");
+            if (confirm) {
+                window.open('https://trade.angelone.in/funds', '_blank');
+            }
+        } else {
+            // Paper trading
+            setShowAddFunds(true);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -374,19 +398,29 @@ export default function TradePage() {
                             />
                             <div className="flex items-center gap-1 text-xs text-gray-400">
                                 <Info size={12} />
-                                <span>LTP: ₹{currentPrice?.toFixed(2)}</span>
+                                <span onClick={() => { if (currentPrice) setPrice(currentPrice.toFixed(2)) }} className="cursor-pointer hover:text-groww-primary">
+                                    LTP: ₹{currentPrice?.toFixed(2)}
+                                </span>
                             </div>
                         </div>
 
                         {/* Balance & Approx */}
                         <div className="flex justify-between items-center py-4 border-t border-gray-100 text-sm">
-                            <div>
-                                <span className="text-gray-500">Balance : </span>
-                                <span className="font-medium text-gray-900">₹{balance.toLocaleString()}</span>
+                            <div className="flex flex-col">
+                                <span className="text-gray-500">Available Balance</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-gray-900">₹{balance?.toLocaleString('en-IN') || '0'}</span>
+                                    <button
+                                        onClick={handleAddFundsClick}
+                                        className="text-groww-primary text-xs font-bold hover:underline"
+                                    >
+                                        +ADD FUNDS
+                                    </button>
+                                </div>
                             </div>
-                            <div>
-                                <span className="text-gray-500">Approx req. : </span>
-                                <span className="font-medium text-gray-900">₹{parseFloat(approxRequired).toLocaleString()}</span>
+                            <div className="text-right">
+                                <span className="text-gray-500 text-xs block">Approx Margin</span>
+                                <span className="font-medium text-gray-900">₹{parseFloat(approxRequired).toLocaleString('en-IN')}</span>
                             </div>
                         </div>
 
@@ -427,6 +461,16 @@ export default function TradePage() {
                     </div>
                 </div>
             </div>
+
+            <AddFundsModal
+                isOpen={showAddFunds}
+                onClose={() => setShowAddFunds(false)}
+                userId={user?.id}
+                onSuccess={(newBal) => {
+                    setBalance(newBal);
+                    alert(`Funds added! New Balance: ₹${newBal}`);
+                }}
+            />
         </div>
     );
 }
