@@ -175,22 +175,22 @@ export default function Header({ activeTab, setActiveTab, setSymbol }) {
                     </button>
                 </nav>
 
-                <div className="hidden lg:flex gap-6 text-xs border-l border-gray-200 pl-6 h-8 items-center">
+                <div className="hidden xl:flex gap-6 text-xs border-l border-gray-200 pl-6 h-8 items-center min-w-fit">
                     <IndexTicker name="NIFTY" data={indices.nifty} />
                     <IndexTicker name="SENSEX" data={indices.sensex} />
                 </div>
 
                 {/* Search & Profile (Right) */}
-                <div className="flex-1 max-w-md relative">
+                <div className="flex-1 max-w-2xl relative min-w-[300px] lg:min-w-[500px]">
                     <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-groww-primary transition-colors" size={20} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-groww-primary transition-colors" size={20} />
                         <input
                             type="text"
                             placeholder="Search stocks, indices..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onFocus={() => query.length >= 2 && setShowResults(true)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-lg py-2.5 pl-10 pr-4 outline-none focus:bg-white focus:border-groww-primary/50 focus:shadow-sm transition-all text-sm"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg py-3 pl-12 pr-4 outline-none focus:bg-white focus:border-groww-primary/50 focus:shadow-md transition-all text-base"
                         />
                     </div>
 
