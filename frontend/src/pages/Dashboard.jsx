@@ -205,7 +205,9 @@ export default function Dashboard() {
             setPriceData(snapRes.data);
 
             try {
-                const candleRes = await api.get(`/api/quotes/candles/${sym}`);
+                const candleRes = await api.get(`/api/quotes/candles/${sym}`, {
+                    params: { userId: user?.id }
+                });
                 if (candleRes.data.candles && candleRes.data.candles.length > 0) {
                     setCandles(candleRes.data.candles);
                 } else {

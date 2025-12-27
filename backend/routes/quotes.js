@@ -20,7 +20,8 @@ router.get('/candles/:symbol', async (req, res) => {
   try {
     const symbol = req.params.symbol;
     const interval = req.query.interval || '1d';
-    const candles = await marketData.getCandles(symbol, interval);
+    const userId = req.query.userId;
+    const candles = await marketData.getCandles(symbol, interval, userId);
     res.json({ candles });
   } catch (err) {
     console.error(err);
